@@ -35,16 +35,6 @@ describe('CamplyStack', () => {
     });
   });
 
-  test('Secrets Manager Secret Created', () => {
-    template.hasResourceProperties('AWS::SecretsManager::Secret', {
-      Name: Match.stringLikeRegexp('TestStack/email-config'),
-      Description: 'Email configuration for Camply notifications',
-      GenerateSecretString: Match.objectLike({
-        GenerateStringKey: 'EMAIL_PASSWORD',
-        SecretStringTemplate: Match.stringLikeRegexp('.*EMAIL_TO_ADDRESS.*'),
-      }),
-    });
-  });
 
   test('Lambda Function Created with Correct Properties', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
@@ -120,7 +110,6 @@ describe('CamplyStack', () => {
     // Update these numbers based on your actual resources
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.resourceCountIs('AWS::S3::Bucket', 1);
-    template.resourceCountIs('AWS::SecretsManager::Secret', 1);
     template.resourceCountIs('AWS::Events::Rule', 1);
   });
 

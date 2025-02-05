@@ -36,7 +36,6 @@ export class GithubActionsStack extends cdk.Stack {
           'iam:*',
           'events:*',
           's3:*',
-          'secretsmanager:*',
           'cloudwatch:*',
           'logs:*',
         ],

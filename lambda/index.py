@@ -3,7 +3,6 @@ import subprocess
 import sys
 import os
 import logging
-import boto3
 
 # Set up logger
 logger = logging.getLogger()
@@ -19,12 +18,6 @@ def lambda_handler(event, context):
     sys.path.insert(0, '/tmp')
 
     from camply.cli import camply_command_line
-
-    # Retrieve email secret from AWS Secrets Manager
-    secrets_client = boto3.client('secretsmanager')
-    secret_arn = os.environ['EMAIL_SECRET_ARN']
-    secret_value = secrets_client.get_secret_value(SecretId=secret_arn)
-    email_secret = json.loads(secret_value['SecretString'])
 
     steep_ravine = {'id': '766', 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia'}
     big_sur = {'id': '518', 'name': 'Julia Pfeiffer Burns', 'provider': 'ReserveCalifornia'}

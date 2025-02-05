@@ -5,9 +5,14 @@ import { Construct } from 'constructs';
 
 interface CamplyLambdaProps {
   cacheBucket: s3.IBucket;
-  emailSecretArn: string;
   searchWindowDays: number
   emailSubjectLine: string;
+  emailToAddress: string;
+  emailUsername: string;
+  emailPassword: string;
+  emailSmtpServer: string;
+  emailSmtpPort: string;
+  emailFromAddress: string;
 }
 
 export class CamplyLambda extends Construct {
@@ -24,11 +29,16 @@ export class CamplyLambda extends Construct {
       memorySize: 512,
       environment: {
         CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
-        EMAIL_SECRET_ARN: props.emailSecretArn,
         SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
         EMAIL_SUBJECT_LINE: props.emailSubjectLine,
         POWERTOOLS_SERVICE_NAME: 'camply-checker',
         POWERTOOLS_METRICS_NAMESPACE: 'CamplySiteCheck',
+        EMAIL_TO_ADDRESS: props.emailToAddress,
+        EMAIL_USERNAME: props.emailUsername,
+        EMAIL_PASSWORD: props.emailPassword,
+        EMAIL_SMTP_SERVER: props.emailSmtpServer,
+        EMAIL_SMTP_PORT: props.emailSmtpPort,
+        EMAIL_FROM_ADDRESS: props.emailFromAddress,
         LOG_LEVEL: 'INFO',
       },
     });

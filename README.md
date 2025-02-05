@@ -64,7 +64,6 @@ npm test
 The CamplyStack defined in `camply-stack.ts` includes:
 
 * An S3 bucket for caching
-* A Secrets Manager secret for email configuration
 * A Lambda function for checking campsite availability
 * An EventBridge rule to trigger the Lambda function periodically
 
