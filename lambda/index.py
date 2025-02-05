@@ -3,6 +3,7 @@ import subprocess
 import sys
 import os
 import logging
+import boto3
 
 # Set up logger
 logger = logging.getLogger()
