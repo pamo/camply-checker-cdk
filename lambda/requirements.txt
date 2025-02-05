@@ -1,0 +1,3 @@
+camply
+aws-lambda-powertools
+boto3
