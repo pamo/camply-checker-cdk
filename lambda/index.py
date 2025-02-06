@@ -8,28 +8,22 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def lambda_handler(event, context):
-    logger.info("Starting camply search")
+def install_dependencies():
+    try:
+        logger.info("Installing camply and its dependencies")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "camply", "-t", "/tmp/"])
+        sys.path.insert(0, '/tmp')
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to install dependencies: {e}")
+        raise
 
-    # Install camply and its dependencies
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "camply", "-t", "/tmp/"])
-
-    # Add /tmp to Python path so we can import installed modules
-    sys.path.insert(0, '/tmp')
-
+def search_campgrounds(campgrounds):
     from camply.cli import camply_command_line
-
-    steep_ravine = {'id': '766', 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia'}
-    big_sur = {'id': '518', 'name': 'Julia Pfeiffer Burns', 'provider': 'ReserveCalifornia'}
-    sardine_peak = {'id': '252037', 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov'}
-    campgrounds = [steep_ravine, sardine_peak, big_sur]
 
     for campground in campgrounds:
         logger.info(f"Searching for {campground['name']}")
 
-        # Set the EMAIL_SUBJECT_LINE environment variable
         os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground['name']} Availability Update"
-        # Create a unique offline search file for each campground
         offline_search_file = f"/tmp/camply_{campground['id']}.json"
 
         command = [
@@ -50,6 +44,19 @@ def lambda_handler(event, context):
         except Exception as e:
             logger.error(f"Error during camply search for {campground['name']}: {str(e)}")
             raise
+
+def lambda_handler(event, context):
+    logger.info("Starting camply search")
+
+    install_dependencies()
+
+    campgrounds = [
+        {'id': '766', 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia'},
+        {'id': '518', 'name': 'Julia Pfeiffer Burns', 'provider': 'ReserveCalifornia'},
+        {'id': '252037', 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov'}
+    ]
+
+    search_campgrounds(campgrounds)
 
     logger.info("Camply searches completed")
 
