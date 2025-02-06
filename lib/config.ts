@@ -28,14 +28,14 @@ export class Config {
         this.emailAddress = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';
         this.searchWindowDays = 365;
         this.scheduleRate = 30;
-        this.githubRepo = 'pamo/camply-checker';
+        this.githubRepo = 'pamo/camply-checker-cdk';
         break;
       case 'dev':
       default:
         this.emailAddress = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';
         this.searchWindowDays = 30;
         this.scheduleRate = 60;
-        this.githubRepo = 'pamo/camply-checker-dev';
+        this.githubRepo = 'pamo/camply-checker-cdk';
         break;
     }
   }

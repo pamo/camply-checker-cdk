@@ -18,7 +18,7 @@ export class GithubActionsStack extends cdk.Stack {
       roleName: 'GithubActionsCamplyRole',
       assumedBy: new iam.WebIdentityPrincipal(githubProvider.openIdConnectProviderArn, {
         StringLike: {
-          'token.actions.githubusercontent.com:sub': 'repo:pamo/camply-checker:*',
+          'token.actions.githubusercontent.com:sub': 'repo:pamo/camply-checker-cdk:*',
         },
         StringEquals: {
           'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
