@@ -17,7 +17,7 @@ class CampgroundConfig:
 
 CAMPGROUNDS = [
     CampgroundConfig('766', 'Steep Ravine', 'ReserveCalifornia'),
-    CampgroundConfig('518', 'Julia Pfeiffer Burns', 'ReserveCalifornia'),
+    # CampgroundConfig('518', 'Julia Pfeiffer Burns', 'ReserveCalifornia'),
     CampgroundConfig('252037', 'Sardine Peak Lookout', 'RecreationDotGov')
 ]
 SEARCH_WINDOW_DAYS = int(os.environ['SEARCH_WINDOW_DAYS'])
