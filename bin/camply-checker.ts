@@ -9,7 +9,6 @@ const app = new cdk.App();
 const env = app.node.tryGetContext('env') || 'dev';
 const config = new Config(env);
 
-// Deploy stacks with environment configuration
 new CamplyStack(app, `CamplyStack-${env}`, {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -18,12 +17,11 @@ new CamplyStack(app, `CamplyStack-${env}`, {
   config: config,
 });
 
-// Only deploy GitHub Actions role in development account
-if (env === 'dev') {
-  new GithubActionsStack(app, 'GithubActionsStack', {
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEFAULT_REGION,
-    },
-  });
-}
+new GithubActionsStack(app, 'GithubActionsStack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+});
+
+app.synth();
