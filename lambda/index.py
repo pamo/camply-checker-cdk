@@ -3,10 +3,24 @@ import subprocess
 import sys
 import os
 import logging
+from datetime import datetime, timedelta
 
 # Set up logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+class CampgroundConfig:
+    def __init__(self, id: str, name: str, provider: str):
+        self.id = id
+        self.name = name
+        self.provider = provider
+
+CAMPGROUNDS = [
+    CampgroundConfig('766', 'Steep Ravine', 'ReserveCalifornia'),
+    CampgroundConfig('518', 'Julia Pfeiffer Burns', 'ReserveCalifornia'),
+    CampgroundConfig('252037', 'Sardine Peak Lookout', 'RecreationDotGov')
+]
+SEARCH_WINDOW_DAYS = int(os.environ['SEARCH_WINDOW_DAYS'])
 
 def install_dependencies():
     try:
@@ -17,21 +31,23 @@ def install_dependencies():
         logger.error(f"Failed to install dependencies: {e}")
         raise
 
-def search_campgrounds(campgrounds):
+def search_campgrounds():
     from camply.cli import camply_command_line
+    start_date = datetime.now().strftime('%Y-%m-%d')
+    end_date = (datetime.now() + timedelta(days=SEARCH_WINDOW_DAYS)).strftime('%Y-%m-%d')
 
-    for campground in campgrounds:
-        logger.info(f"Searching for {campground['name']}")
+    for campground in CAMPGROUNDS:
+        logger.info(f"Searching for {campground.name}")
 
-        os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground['name']} Availability Update"
-        offline_search_file = f"/tmp/camply_{campground['id']}.json"
+        os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground.name} Availability Update"
+        offline_search_file = f"/tmp/camply_{campground.id}.json"
 
         command = [
             'campsites',
-            '--provider', campground['provider'],
-            '--campground', campground['id'],
-            '--start-date', '2025-01-01',
-            '--end-date', '2025-12-31',
+            '--provider', campground.provider,
+            '--campground', campground.id,
+            '--start-date', start_date,
+            '--end-date', end_date,
             '--notifications', 'email',
             '--search-once',
             '--offline-search',
@@ -40,9 +56,9 @@ def search_campgrounds(campgrounds):
 
         try:
             camply_command_line(command)
-            logger.info(f"Search completed for {campground['name']}")
+            logger.info(f"Search completed for {campground.name}")
         except Exception as e:
-            logger.error(f"Error during camply search for {campground['name']}: {str(e)}")
+            logger.error(f"Error during camply search for {campground.name}: {str(e)}")
             raise
 
 def lambda_handler(event, context):
@@ -50,13 +66,7 @@ def lambda_handler(event, context):
 
     install_dependencies()
 
-    campgrounds = [
-        {'id': '766', 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia'},
-        {'id': '518', 'name': 'Julia Pfeiffer Burns', 'provider': 'ReserveCalifornia'},
-        {'id': '252037', 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov'}
-    ]
-
-    search_campgrounds(campgrounds)
+    search_campgrounds()
 
     logger.info("Camply searches completed")
 
