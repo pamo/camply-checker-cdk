@@ -6,7 +6,7 @@ import { Construct } from 'constructs';
 import { CamplyLambda } from '../constructs/camply-lambda';
 import { Config } from '../config';
 
-interface CamplyStackProps extends cdk.StackProps {
+export interface CamplyStackProps extends cdk.StackProps {
   config: Config;
 }
 
