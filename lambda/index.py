@@ -21,7 +21,6 @@ CAMPGROUNDS = [
 SEARCH_WINDOW_DAYS = int(os.environ['SEARCH_WINDOW_DAYS'])
 
 
-
 def search_campgrounds():
     from camply.cli import camply_command_line
     start_date = datetime.now().strftime('%Y-%m-%d')
@@ -31,7 +30,7 @@ def search_campgrounds():
         logger.info(f"Searching for {campground.name}")
 
         os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground.name} Availability Update"
-        offline_search_file = f"/tmp/camply_{campground.id}.json"
+        # offline_search_file = f"/tmp/camply_{campground.id}.json"
 
         command = [
             'campsites',
@@ -41,8 +40,8 @@ def search_campgrounds():
             '--end-date', end_date,
             '--notifications', 'email',
             '--search-once',
-            '--offline-search',
-            '--offline-search-path', offline_search_file
+            # '--offline-search'
+            # '--offline-search-path', offline_search_file
         ]
 
         try:
