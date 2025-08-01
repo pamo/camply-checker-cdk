@@ -1,11 +1,16 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
+
 import { Construct } from 'constructs';
 
 interface CamplyLambdaProps {
   cacheBucket: s3.IBucket;
-  searchWindowDays: number
+  searchWindowDays: number;
   emailSubjectLine: string;
   emailToAddress: string;
   emailUsername: string;
@@ -21,10 +26,24 @@ export class CamplyLambda extends Construct {
   constructor(scope: Construct, id: string, props: CamplyLambdaProps) {
     super(scope, id);
 
+    // Skip bundling during tests to avoid Docker dependency issues
+    const shouldBundle = process.env.NODE_ENV !== 'test' && !process.env.CDK_DISABLE_BUNDLING;
+
     this.function = new lambda.Function(this, 'Function', {
       runtime: lambda.Runtime.PYTHON_3_11,
       handler: 'index.lambda_handler',
-      code: lambda.Code.fromAsset('lambda'),
+      code: shouldBundle
+        ? lambda.Code.fromAsset('lambda', {
+            bundling: {
+              image: lambda.Runtime.PYTHON_3_11.bundlingImage,
+              command: [
+                'bash',
+                '-c',
+                'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output',
+              ],
+            },
+          })
+        : lambda.Code.fromAsset('lambda'),
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
       environment: {
@@ -44,5 +63,52 @@ export class CamplyLambda extends Construct {
     });
 
     props.cacheBucket.grantReadWrite(this.function);
+
+    // Create SNS topic for alerts - use the same email as emailToAddress
+    const alertTopic = new sns.Topic(this, 'AlertTopic', {
+      displayName: 'Camply Lambda Alerts',
+    });
+
+    alertTopic.addSubscription(new snsSubscriptions.EmailSubscription(props.emailToAddress));
+
+    // Error rate alarm
+    const errorAlarm = new cloudwatch.Alarm(this, 'ErrorAlarm', {
+      metric: this.function.metricErrors({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: 'Camply Lambda function errors',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    errorAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // Duration alarm (if function takes too long)
+    const durationAlarm = new cloudwatch.Alarm(this, 'DurationAlarm', {
+      metric: this.function.metricDuration({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 240000, // 4 minutes (240 seconds in milliseconds)
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      alarmDescription: 'Camply Lambda function taking too long',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    durationAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // Throttle alarm
+    const throttleAlarm = new cloudwatch.Alarm(this, 'ThrottleAlarm', {
+      metric: this.function.metricThrottles({
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: 'Camply Lambda function throttled',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    throttleAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
   }
 }

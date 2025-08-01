@@ -4,6 +4,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Construct } from 'constructs';
 import { CamplyLambda } from '../constructs/camply-lambda';
+
 import { Config } from '../config';
 
 export interface CamplyStackProps extends cdk.StackProps {

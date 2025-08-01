@@ -1,6 +1,4 @@
 import json
-import subprocess
-import sys
 import os
 import logging
 from datetime import datetime, timedelta
@@ -22,14 +20,7 @@ CAMPGROUNDS = [
 ]
 SEARCH_WINDOW_DAYS = int(os.environ['SEARCH_WINDOW_DAYS'])
 
-def install_dependencies():
-    try:
-        logger.info("Installing camply and its dependencies")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "camply", "-t", "/tmp/"])
-        sys.path.insert(0, '/tmp')
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies: {e}")
-        raise
+
 
 def search_campgrounds():
     from camply.cli import camply_command_line
@@ -64,13 +55,14 @@ def search_campgrounds():
 def lambda_handler(event, context):
     logger.info("Starting camply search")
 
-    install_dependencies()
+    try:
+        search_campgrounds()
+        logger.info("Camply searches completed")
 
-    search_campgrounds()
-
-    logger.info("Camply searches completed")
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Camply check completed')
-    }
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Camply check completed')
+        }
+    except Exception as e:
+        logger.error(f"Lambda execution failed: {str(e)}")
+        raise

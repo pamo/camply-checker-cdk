@@ -38,6 +38,8 @@ export class GithubActionsStack extends cdk.Stack {
           's3:*',
           'cloudwatch:*',
           'logs:*',
+          'ssm:GetParameter',
+          'ssm:GetParameters',
         ],
         resources: ['*'], // In production, scope this to specific resources
       })

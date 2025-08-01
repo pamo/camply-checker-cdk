@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,9 +46,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Install dependencies
-        run: |
-          npm ci
-          cd lambda && pip install -r requirements.txt -t .
+        run: npm ci
 
       - name: Run tests
         run: npm test
@@ -58,4 +56,4 @@ jobs:
 
       - name: Deploy to AWS
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npx cdk deploy --require-approval never
+        run: npx cdk deploy CamplyStack-dev --require-approval never -c env=dev

@@ -50,7 +50,10 @@
     ],
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
-    }
+    },
+    "setupFiles": [
+      "<rootDir>/test/setup.ts"
+    ]
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",

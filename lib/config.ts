@@ -14,6 +14,7 @@ export class Config {
   public readonly emailFromAddress: string;
   public readonly emailSubjectLine: string;
 
+
   constructor(env: string) {
     this.emailToAddress = process.env.EMAIL_TO_ADDRESS || 'pamela.ocampo@gmail.com';
     this.emailUsername = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';
@@ -22,6 +23,7 @@ export class Config {
     this.emailSmtpPort = process.env.EMAIL_SMTP_PORT || '465';
     this.emailFromAddress = process.env.EMAIL_FROM_ADDRESS || 'pamela.ocampo@gmail.com';
     this.emailSubjectLine = process.env.EMAIL_SUBJECT_LINE || 'Camply Notification';
+
 
     switch (env) {
       case 'prod':
