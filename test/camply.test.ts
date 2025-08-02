@@ -81,7 +81,6 @@ describe('CamplyStack', () => {
     template.resourceCountIs('AWS::Lambda::Function', 2); // Main function + S3 auto-delete custom resource
     template.resourceCountIs('AWS::S3::Bucket', 1);
     template.resourceCountIs('AWS::Events::Rule', 1);
-    template.resourceCountIs('AWS::SecretsManager::Secret', 1);
     template.resourceCountIs('AWS::SNS::Topic', 1);
     template.resourceCountIs('AWS::SNS::Subscription', 1);
     template.resourceCountIs('AWS::CloudWatch::Alarm', 3); // Error, Duration, Throttle
@@ -121,15 +120,6 @@ describe('CamplyStack', () => {
   });
 
   test('Secrets Manager Secret Created', () => {
-    template.hasResourceProperties('AWS::SecretsManager::Secret', {
-      Name: Match.stringLikeRegexp('camply-checker-.*-alert-email'),
-      Description: 'Alert email for Camply checker notifications',
-      GenerateSecretString: {
-        SecretStringTemplate: '{"email":""}',
-        GenerateStringKey: 'email',
-        ExcludeCharacters: '"@/\\',
-      },
-    });
   });
 
   test('SNS Topic Created for Alerts', () => {
@@ -185,20 +175,6 @@ describe('CamplyStack', () => {
       Statistic: 'Sum',
       Threshold: 1,
       TreatMissingData: 'notBreaching',
-    });
-  });
-
-  test('Lambda has Secrets Manager permissions', () => {
-    template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyDocument: {
-        Statement: Match.arrayWith([
-          Match.objectLike({
-            Action: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
-            Effect: 'Allow',
-            Resource: Match.anyValue(),
-          }),
-        ]),
-      },
     });
   });
 

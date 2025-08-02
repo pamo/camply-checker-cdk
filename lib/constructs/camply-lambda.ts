@@ -29,38 +29,53 @@ export class CamplyLambda extends Construct {
     // Skip bundling during tests to avoid Docker dependency issues
     const shouldBundle = process.env.NODE_ENV !== 'test' && !process.env.CDK_DISABLE_BUNDLING;
 
-    this.function = new lambda.Function(this, 'Function', {
-      runtime: lambda.Runtime.PYTHON_3_11,
-      handler: 'index.lambda_handler',
-      code: shouldBundle
-        ? lambda.Code.fromAsset('lambda', {
-            bundling: {
-              image: lambda.Runtime.PYTHON_3_11.bundlingImage,
-              command: [
-                'bash',
-                '-c',
-                'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output',
-              ],
-            },
-          })
-        : lambda.Code.fromAsset('lambda'),
-      timeout: cdk.Duration.minutes(5),
-      memorySize: 512,
-      environment: {
-        CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
-        SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
-        EMAIL_SUBJECT_LINE: props.emailSubjectLine,
-        POWERTOOLS_SERVICE_NAME: 'camply-checker',
-        POWERTOOLS_METRICS_NAMESPACE: 'CamplySiteCheck',
-        EMAIL_TO_ADDRESS: props.emailToAddress,
-        EMAIL_USERNAME: props.emailUsername,
-        EMAIL_PASSWORD: props.emailPassword,
-        EMAIL_SMTP_SERVER: props.emailSmtpServer,
-        EMAIL_SMTP_PORT: props.emailSmtpPort,
-        EMAIL_FROM_ADDRESS: props.emailFromAddress,
-        LOG_LEVEL: 'INFO',
-      },
-    });
+    if (shouldBundle) {
+      this.function = new lambda.Function(this, 'Function', {
+        runtime: lambda.Runtime.FROM_IMAGE,
+        code: lambda.Code.fromAssetImage('lambda', {
+          cmd: ['index.lambda_handler'],
+        }),
+        handler: lambda.Handler.FROM_IMAGE,
+        timeout: cdk.Duration.minutes(5),
+        memorySize: 512,
+        environment: {
+          CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
+          SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
+          EMAIL_SUBJECT_LINE: props.emailSubjectLine,
+          POWERTOOLS_SERVICE_NAME: 'camply-checker',
+          POWERTOOLS_METRICS_NAMESPACE: 'CamplySiteCheck',
+          EMAIL_TO_ADDRESS: props.emailToAddress,
+          EMAIL_USERNAME: props.emailUsername,
+          EMAIL_PASSWORD: props.emailPassword,
+          EMAIL_SMTP_SERVER: props.emailSmtpServer,
+          EMAIL_SMTP_PORT: props.emailSmtpPort,
+          EMAIL_FROM_ADDRESS: props.emailFromAddress,
+          LOG_LEVEL: 'INFO',
+        },
+      });
+    } else {
+      this.function = new lambda.Function(this, 'Function', {
+        runtime: lambda.Runtime.PYTHON_3_11,
+        handler: 'index.lambda_handler',
+        code: lambda.Code.fromAsset('lambda'),
+        timeout: cdk.Duration.minutes(5),
+        memorySize: 512,
+        environment: {
+          CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
+          SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
+          EMAIL_SUBJECT_LINE: props.emailSubjectLine,
+          POWERTOOLS_SERVICE_NAME: 'camply-checker',
+          POWERTOOLS_METRICS_NAMESPACE: 'CamplySiteCheck',
+          EMAIL_TO_ADDRESS: props.emailToAddress,
+          EMAIL_USERNAME: props.emailUsername,
+          EMAIL_PASSWORD: props.emailPassword,
+          EMAIL_SMTP_SERVER: props.emailSmtpServer,
+          EMAIL_SMTP_PORT: props.emailSmtpPort,
+          EMAIL_FROM_ADDRESS: props.emailFromAddress,
+          LOG_LEVEL: 'INFO',
+        },
+      });
+    }
 
     props.cacheBucket.grantReadWrite(this.function);
 
