@@ -36,6 +36,7 @@ export class CamplyLambda extends Construct {
           cmd: ['index.lambda_handler'],
         }),
         handler: lambda.Handler.FROM_IMAGE,
+        architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.minutes(5),
         memorySize: 512,
         environment: {
