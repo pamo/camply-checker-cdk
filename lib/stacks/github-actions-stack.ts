@@ -40,6 +40,22 @@ export class GithubActionsStack extends cdk.Stack {
           'logs:*',
           'ssm:GetParameter',
           'ssm:GetParameters',
+          // ECR permissions for Docker image publishing
+          'ecr:GetAuthorizationToken',
+          'ecr:BatchCheckLayerAvailability',
+          'ecr:GetDownloadUrlForLayer',
+          'ecr:BatchGetImage',
+          'ecr:DescribeRepositories',
+          'ecr:CreateRepository',
+          'ecr:InitiateLayerUpload',
+          'ecr:UploadLayerPart',
+          'ecr:CompleteLayerUpload',
+          'ecr:PutImage',
+          'ecr:BatchDeleteImage',
+          'ecr:DescribeImages',
+          'ecr:ListImages',
+          // STS permissions for assuming CDK roles
+          'sts:AssumeRole',
         ],
         resources: ['*'], // In production, scope this to specific resources
       })
