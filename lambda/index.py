@@ -7,6 +7,12 @@ from datetime import datetime, timedelta
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Configure environment for writable directories
+os.environ['HOME'] = '/tmp'
+os.environ['XDG_CACHE_HOME'] = '/tmp/.cache'
+os.environ['XDG_DATA_HOME'] = '/tmp/.local/share'
+os.environ['XDG_CONFIG_HOME'] = '/tmp/.config'
+
 class CampgroundConfig:
     def __init__(self, id: str, name: str, provider: str):
         self.id = id
@@ -23,6 +29,12 @@ SEARCH_WINDOW_DAYS = int(os.environ['SEARCH_WINDOW_DAYS'])
 
 def search_campgrounds():
     from camply.cli import camply_command_line
+
+    # Ensure XDG directories exist
+    xdg_dirs = ['/tmp/.cache', '/tmp/.local/share', '/tmp/.config']
+    for xdg_dir in xdg_dirs:
+        os.makedirs(xdg_dir, exist_ok=True)
+
     start_date = datetime.now().strftime('%Y-%m-%d')
     end_date = (datetime.now() + timedelta(days=SEARCH_WINDOW_DAYS)).strftime('%Y-%m-%d')
 
@@ -30,7 +42,7 @@ def search_campgrounds():
         logger.info(f"Searching for {campground.name}")
 
         os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground.name} Availability Update"
-        # offline_search_file = f"/tmp/camply_{campground.id}.json"
+        offline_search_file = f"/tmp/camply_{campground.id}.json"
 
         command = [
             'campsites',
@@ -40,8 +52,8 @@ def search_campgrounds():
             '--end-date', end_date,
             '--notifications', 'email',
             '--search-once',
-            # '--offline-search'
-            # '--offline-search-path', offline_search_file
+            '--offline-search',
+            '--offline-search-path', offline_search_file
         ]
 
         try:

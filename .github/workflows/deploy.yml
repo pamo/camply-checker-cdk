@@ -30,6 +30,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
 
       - name: Check for required secrets
         run: |
@@ -59,4 +61,4 @@ jobs:
 
       - name: Deploy to AWS
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npx cdk deploy CamplyStack-prod --require-approval never -c env=dev
+        run: npx cdk deploy CamplyStack-prod --require-approval never -c env=prod
