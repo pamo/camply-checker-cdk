@@ -32,6 +32,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           platforms: linux/amd64
+          driver-opts: |
+            network=host
 
       - name: Check for required secrets
         run: |
@@ -50,6 +52,9 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsCamplyRole
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Install dependencies
         run: npm ci
 
@@ -61,4 +66,7 @@ jobs:
 
       - name: Deploy to AWS
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+          CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: npx cdk deploy CamplyStack-prod --require-approval never -c env=prod
