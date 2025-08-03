@@ -1,2 +1,4 @@
+# camply is included in the base Docker image
+# Only additional dependencies needed for Lambda
 aws-lambda-powertools
 boto3

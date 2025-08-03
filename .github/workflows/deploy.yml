@@ -32,8 +32,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           platforms: linux/amd64
-          driver-opts: |
-            network=host
+
+
 
       - name: Check for required secrets
         run: |
@@ -54,6 +54,8 @@ jobs:
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
+
+
 
       - name: Install dependencies
         run: npm ci

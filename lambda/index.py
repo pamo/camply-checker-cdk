@@ -1,33 +1,15 @@
 import json
 import os
 import logging
-import tempfile
 from datetime import datetime, timedelta
+from camply_filesystem_patch import setup_camply_filesystem, cleanup_temp_dir
 
 # Set up logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def setup_camply_temp_dirs():
-    """Set up temporary directories for camply using Python's tempfile module"""
-    # Create a temporary directory for camply operations
-    temp_dir = tempfile.mkdtemp(prefix='camply_', dir='/tmp')
-    logger.info(f"Created temporary directory for camply: {temp_dir}")
-
-    # Set environment variables to redirect camply to use temp directories
-    os.environ['HOME'] = temp_dir
-    os.environ['XDG_CACHE_HOME'] = os.path.join(temp_dir, '.cache')
-    os.environ['XDG_DATA_HOME'] = os.path.join(temp_dir, '.local', 'share')
-    os.environ['XDG_CONFIG_HOME'] = os.path.join(temp_dir, '.config')
-
-    # Create the XDG directories
-    for env_var in ['XDG_CACHE_HOME', 'XDG_DATA_HOME', 'XDG_CONFIG_HOME']:
-        os.makedirs(os.environ[env_var], exist_ok=True)
-
-    return temp_dir
-
-# Set up temporary directories for camply
-TEMP_DIR = setup_camply_temp_dirs()
+# Set up filesystem redirection for camply
+temp_dir = setup_camply_filesystem()
 
 class CampgroundConfig:
     def __init__(self, id: str, name: str, provider: str):
@@ -55,9 +37,6 @@ def search_campgrounds():
         # Set dynamic email subject for this campground
         os.environ['EMAIL_SUBJECT_LINE'] = f"Camply: {campground.name} Availability Update"
 
-        # Use offline search with file in temp directory
-        offline_search_file = os.path.join(TEMP_DIR, f"camply_{campground.id}_{start_date}_{end_date}.json")
-
         command = [
             'campsites',
             '--provider', campground.provider,
@@ -65,9 +44,7 @@ def search_campgrounds():
             '--start-date', start_date,
             '--end-date', end_date,
             '--notifications', 'email',
-            '--search-once',
-            '--offline-search',
-            '--offline-search-path', offline_search_file
+            '--search-once'
         ]
 
         try:
@@ -94,9 +71,4 @@ def lambda_handler(event, context):
         raise
     finally:
         # Clean up temporary directory
-        try:
-            import shutil
-            shutil.rmtree(TEMP_DIR, ignore_errors=True)
-            logger.info(f"Cleaned up temporary directory: {TEMP_DIR}")
-        except Exception as cleanup_error:
-            logger.warning(f"Failed to clean up temp directory: {cleanup_error}")
+        cleanup_temp_dir(temp_dir)
