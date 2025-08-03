@@ -66,9 +66,12 @@ jobs:
       - name: Build CDK app
         run: npm run build
 
+
+
       - name: Deploy to AWS
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+          CDK_CLI_NOTICES: false
         run: npx cdk deploy CamplyStack-prod --require-approval never -c env=prod
