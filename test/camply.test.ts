@@ -83,7 +83,7 @@ describe('CamplyStack', () => {
     template.resourceCountIs('AWS::Events::Rule', 1);
     template.resourceCountIs('AWS::SNS::Topic', 1);
     template.resourceCountIs('AWS::SNS::Subscription', 1);
-    template.resourceCountIs('AWS::CloudWatch::Alarm', 3); // Error, Duration, Throttle
+    template.resourceCountIs('AWS::CloudWatch::Alarm', 7); // Error, Duration, Throttle, EmailDeliveryFailure, EmailSuccessRate, SecretRetrievalFailure, S3OperationFailure
   });
 
   test('S3 Bucket has proper deletion policy', () => {

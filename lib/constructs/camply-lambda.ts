@@ -5,6 +5,7 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 import { Construct } from 'constructs';
 
@@ -18,6 +19,7 @@ interface CamplyLambdaProps {
   emailSmtpServer: string;
   emailSmtpPort: string;
   emailFromAddress: string;
+  alertEmailAddress: string;
 }
 
 export class CamplyLambda extends Construct {
@@ -80,12 +82,27 @@ export class CamplyLambda extends Construct {
 
     props.cacheBucket.grantReadWrite(this.function);
 
+    // Grant permissions to publish CloudWatch metrics
+    this.function.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'cloudwatch:PutMetricData'
+      ],
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'cloudwatch:namespace': 'CamplySiteCheck/Notifications'
+        }
+      }
+    }));
+
     // Create SNS topic for alerts - use the same email as emailToAddress
     const alertTopic = new sns.Topic(this, 'AlertTopic', {
       displayName: 'Camply Lambda Alerts',
     });
 
-    alertTopic.addSubscription(new snsSubscriptions.EmailSubscription(props.emailToAddress));
+    // Use dedicated alert email address for CloudWatch SNS notifications
+    alertTopic.addSubscription(new snsSubscriptions.EmailSubscription(props.alertEmailAddress));
 
     // Error rate alarm
     const errorAlarm = new cloudwatch.Alarm(this, 'ErrorAlarm', {
@@ -126,5 +143,73 @@ export class CamplyLambda extends Construct {
     });
 
     throttleAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // Email delivery failure alarm
+    const emailFailureAlarm = new cloudwatch.Alarm(this, 'EmailDeliveryFailureAlarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'CamplySiteCheck/Notifications',
+        metricName: 'EmailDeliveryFailure',
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(15),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'Email delivery failures detected',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    emailFailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // Email delivery success rate alarm (trigger if success rate drops below 80%)
+    const emailSuccessRateAlarm = new cloudwatch.Alarm(this, 'EmailSuccessRateAlarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'CamplySiteCheck/Notifications',
+        metricName: 'EmailDeliverySuccessRate',
+        statistic: 'Average',
+        period: cdk.Duration.minutes(15),
+      }),
+      threshold: 80,
+      evaluationPeriods: 2,
+      comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+      alarmDescription: 'Email delivery success rate below 80%',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    emailSuccessRateAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // Secret retrieval failure alarm
+    const secretFailureAlarm = new cloudwatch.Alarm(this, 'SecretRetrievalFailureAlarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'CamplySiteCheck/Notifications',
+        metricName: 'SecretRetrievalFailure',
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(15),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'AWS Secrets Manager retrieval failures detected',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    secretFailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
+    // S3 operation failure alarm
+    const s3FailureAlarm = new cloudwatch.Alarm(this, 'S3OperationFailureAlarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'CamplySiteCheck/Notifications',
+        metricName: 'S3OperationFailure',
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(15),
+      }),
+      threshold: 3, // Allow some failures but alert if too many
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'Multiple S3 operation failures detected',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    s3FailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
   }
 }
