@@ -1,6 +1,9 @@
 # Use the official camply Docker image with explicit AMD64 platform
 FROM --platform=linux/amd64 juftin/camply:latest
 
+# Build argument to bust cache when environment variables change
+ARG CACHE_BUST=1
+
 # Install AWS Lambda Runtime Interface Client and fix numpy/pandas compatibility
 COPY requirements.txt /tmp/
 RUN pip install awslambdaric && \

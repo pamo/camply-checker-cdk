@@ -36,11 +36,15 @@ export class CamplyLambda extends Construct {
         runtime: lambda.Runtime.FROM_IMAGE,
         code: lambda.Code.fromAssetImage('lambda', {
           cmd: ['index.lambda_handler'],
+          buildArgs: {
+            CACHE_BUST: Date.now().toString(),
+          },
         }),
         handler: lambda.Handler.FROM_IMAGE,
         architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.minutes(5),
         memorySize: 512,
+        description: `Camply checker function - deployed ${new Date().toISOString()}`,
         environment: {
           CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
           SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
