@@ -29,7 +29,7 @@ export class Config {
     switch (env) {
       case 'prod':
         this.emailAddress = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';
-        this.searchWindowDays = 365;
+        this.searchWindowDays = 90;
         this.scheduleRate = 30;
         this.githubRepo = 'pamo/camply-checker-cdk';
         break;
