@@ -54,6 +54,7 @@ export class CamplyLambda extends Construct {
           EMAIL_SMTP_PORT: props.emailSmtpPort,
           EMAIL_FROM_ADDRESS: props.emailFromAddress,
           LOG_LEVEL: 'INFO',
+          DEPLOYMENT_TIMESTAMP: Date.now().toString(), // Force update
         },
       });
     } else {
@@ -76,6 +77,7 @@ export class CamplyLambda extends Construct {
           EMAIL_SMTP_PORT: props.emailSmtpPort,
           EMAIL_FROM_ADDRESS: props.emailFromAddress,
           LOG_LEVEL: 'INFO',
+          DEPLOYMENT_TIMESTAMP: Date.now().toString(), // Force update
         },
       });
     }
