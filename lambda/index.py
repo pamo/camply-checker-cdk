@@ -23,6 +23,8 @@ class CampgroundConfig:
 
 CAMPGROUNDS = [
     CampgroundConfig('766', 'Steep Ravine', 'ReserveCalifornia'),
+    CampgroundConfig('590', 'Steep Ravine Campgrounds', 'ReserveCalifornia'),
+    CampgroundConfig('2009', 'Pantoll Campground', 'ReserveCalifornia'),
     CampgroundConfig('518', 'Julia Pfeiffer Burns', 'ReserveCalifornia'),
     CampgroundConfig('252037', 'Sardine Peak Lookout', 'RecreationDotGov')
 ]
