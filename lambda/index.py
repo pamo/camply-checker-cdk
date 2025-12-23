@@ -14,17 +14,60 @@ def lambda_handler(event, context):
     Simplified Lambda handler for camply campsite checking
     """
     try:
-        # Set up writable directories for camply
+        # Set up writable directories for camply BEFORE importing
         import tempfile
+        import sys
         temp_dir = tempfile.mkdtemp(prefix='camply_', dir='/tmp')
+        
+        # Set environment variables that camply uses
         os.environ['HOME'] = temp_dir
         os.environ['XDG_CACHE_HOME'] = os.path.join(temp_dir, '.cache')
         os.environ['XDG_DATA_HOME'] = os.path.join(temp_dir, '.local', 'share')
         os.environ['XDG_CONFIG_HOME'] = os.path.join(temp_dir, '.config')
+        os.environ['TMPDIR'] = temp_dir
+        os.environ['TEMP'] = temp_dir
+        os.environ['TMP'] = temp_dir
         
-        # Create directories
+        # Create all necessary directories
         for env_var in ['XDG_CACHE_HOME', 'XDG_DATA_HOME', 'XDG_CONFIG_HOME']:
             os.makedirs(os.environ[env_var], exist_ok=True)
+        
+        # Create camply-specific cache directories
+        camply_dirs = [
+            os.path.join(temp_dir, '.cache', 'camply'),
+            os.path.join(temp_dir, '.local', 'share', 'camply'),
+            os.path.join(temp_dir, 'camply_cache'),
+        ]
+        for dir_path in camply_dirs:
+            os.makedirs(dir_path, exist_ok=True)
+        
+        # Monkey patch Path operations to redirect read-only filesystem writes
+        from pathlib import Path
+        original_mkdir = Path.mkdir
+        original_write_text = Path.write_text
+        
+        def safe_mkdir(self, mode=0o777, parents=False, exist_ok=False):
+            path_str = str(self)
+            if '/usr/local/lib/python3.11/site-packages/camply' in path_str:
+                # Redirect to temp directory
+                relative_path = path_str.split('site-packages/camply/')[-1] if 'camply/' in path_str else 'cache'
+                new_path = Path(os.path.join(temp_dir, 'camply_cache', relative_path))
+                return original_mkdir(new_path, mode, parents, exist_ok)
+            return original_mkdir(self, mode, parents, exist_ok)
+        
+        def safe_write_text(self, data, encoding=None, errors=None, newline=None):
+            path_str = str(self)
+            if '/usr/local/lib/python3.11/site-packages/camply' in path_str:
+                # Redirect to temp directory
+                relative_path = path_str.split('site-packages/camply/')[-1] if 'camply/' in path_str else 'cache'
+                new_path = Path(os.path.join(temp_dir, 'camply_cache', relative_path))
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                return original_write_text(new_path, data, encoding, errors, newline)
+            return original_write_text(self, data, encoding, errors, newline)
+        
+        # Apply patches
+        Path.mkdir = safe_mkdir
+        Path.write_text = safe_write_text
         
         # Import camply here to avoid import issues during cold start
         from camply.containers import SearchWindow
