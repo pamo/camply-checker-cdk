@@ -80,3 +80,9 @@ node_modules/
 *.tgz
 .vscode/
 cdk.out
+
+# Testing artifacts
+test_env/
+.pytest_cache/
+*_simplified.*
+digest.txt

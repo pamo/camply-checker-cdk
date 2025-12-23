@@ -69,4 +69,11 @@ jobs:
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
           CDK_CLI_NOTICES: false
+          EMAIL_TO_ADDRESS: ${{ secrets.EMAIL_TO_ADDRESS }}
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_SMTP_SERVER: ${{ secrets.EMAIL_SMTP_SERVER }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
+          ALERT_EMAIL_ADDRESS: ${{ secrets.ALERT_EMAIL_ADDRESS }}
         run: npx cdk deploy CamplyStack-prod --require-approval never -c env=prod

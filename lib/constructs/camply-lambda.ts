@@ -41,9 +41,9 @@ export class CamplyLambda extends Construct {
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
-        architecture: lambda.Architecture.X86_64,
-        timeout: cdk.Duration.minutes(5),
-        memorySize: 512,
+        architecture: lambda.Architecture.ARM_64,
+        timeout: cdk.Duration.minutes(3),
+        memorySize: 256,
         description: `Camply checker function - deployed ${new Date().toISOString()}`,
         environment: {
           CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
@@ -89,18 +89,18 @@ export class CamplyLambda extends Construct {
     props.cacheBucket.grantReadWrite(this.function);
 
     // Grant permissions to publish CloudWatch metrics
-    this.function.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: [
-        'cloudwatch:PutMetricData'
-      ],
-      resources: ['*'],
-      conditions: {
-        StringEquals: {
-          'cloudwatch:namespace': 'CamplySiteCheck/Notifications'
-        }
-      }
-    }));
+    this.function.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'cloudwatch:namespace': 'CamplySiteCheck/Notifications',
+          },
+        },
+      })
+    );
 
     // Create SNS topic for alerts - use the same email as emailToAddress
     const alertTopic = new sns.Topic(this, 'AlertTopic', {

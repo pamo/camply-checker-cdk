@@ -15,7 +15,6 @@ export class Config {
   public readonly emailSubjectLine: string;
   public readonly alertEmailAddress: string;
 
-
   constructor(env: string) {
     this.emailToAddress = process.env.EMAIL_TO_ADDRESS || 'pamela.ocampo@gmail.com';
     this.emailUsername = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';

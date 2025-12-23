@@ -1,1 +1,2 @@
+camply==0.33.1
 boto3
