@@ -118,9 +118,17 @@ def lambda_handler(event, context):
                 if available_sites:
                     logger.info(f"Found {len(available_sites)} available sites for {config['provider']}")
 
-                    # Convert to serializable format
+                    # Convert to serializable format and filter Point Reyes to hike-in only
                     sites_data = []
                     for site in available_sites:
+                        # Filter Point Reyes to only include hike-in campgrounds
+                        if site.facility_name == "Point Reyes National Seashore Campground":
+                            # Only include sites with HIKE TO type (excludes boat-in sites)
+                            if site.campsite_type and "HIKE TO" in site.campsite_type:
+                                pass  # Include this site
+                            else:
+                                continue  # Skip boat-in and other types
+                        
                         sites_data.append({
                             'campsite_id': site.campsite_id,
                             'booking_date': site.booking_date.isoformat() if site.booking_date else None,
