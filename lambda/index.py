@@ -161,6 +161,52 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': str(e)})
         }
 
+def format_date_with_relative(date_str: str) -> str:
+    """
+    Format date as 'Wed, Dec 24th, 2025 (in x days/weeks/months)'
+    """
+    try:
+        from datetime import datetime, timedelta
+        
+        # Parse the date
+        if 'T' in date_str:
+            date_obj = datetime.fromisoformat(date_str.split('T')[0])
+        else:
+            date_obj = datetime.strptime(date_str.split(' ')[0], '%Y-%m-%d')
+        
+        # Format the date
+        day_suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(date_obj.day % 10, 'th')
+        if 10 <= date_obj.day % 100 <= 20:  # Special case for 11th, 12th, 13th
+            day_suffix = 'th'
+        
+        formatted_date = date_obj.strftime(f'%a, %b {date_obj.day}{day_suffix}, %Y')
+        
+        # Calculate relative time
+        today = datetime.now().date()
+        days_diff = (date_obj.date() - today).days
+        
+        if days_diff == 0:
+            relative = "today"
+        elif days_diff == 1:
+            relative = "tomorrow"
+        elif days_diff < 7:
+            relative = f"in {days_diff} days"
+        elif days_diff < 30:
+            weeks = days_diff // 7
+            relative = f"in {weeks} week{'s' if weeks != 1 else ''}"
+        elif days_diff < 365:
+            months = days_diff // 30
+            relative = f"in {months} month{'s' if months != 1 else ''}"
+        else:
+            years = days_diff // 365
+            relative = f"in {years} year{'s' if years != 1 else ''}"
+        
+        return f"{formatted_date} ({relative})"
+        
+    except Exception as e:
+        return date_str  # Fallback to original if parsing fails
+
+
 def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool:
     """
     Check if notification should be sent by comparing with last sent results
@@ -247,17 +293,18 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         <html>
         <head>
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                h1 {{ color: #2E8B57; }}
-                h2 {{ color: #4682B4; margin-top: 30px; }}
-                table {{ border-collapse: collapse; width: 100%; margin: 15px 0; }}
-                th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+                body {{ font-family: Arial, sans-serif; margin: 15px; line-height: 1.3; }}
+                h1 {{ color: #2E8B57; margin: 10px 0; font-size: 20px; }}
+                h2 {{ color: #4682B4; margin: 15px 0 8px 0; font-size: 16px; }}
+                table {{ border-collapse: collapse; width: 100%; margin: 8px 0 20px 0; }}
+                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }}
                 th {{ background-color: #f2f2f2; font-weight: bold; }}
                 tr:nth-child(even) {{ background-color: #f9f9f9; }}
-                .book-link {{ background-color: #4CAF50; color: white; padding: 8px 16px; 
-                            text-decoration: none; border-radius: 4px; display: inline-block; }}
+                .book-link {{ background-color: #4CAF50; color: white; padding: 6px 12px; 
+                            text-decoration: none; border-radius: 3px; display: inline-block; font-size: 12px; }}
                 .book-link:hover {{ background-color: #45a049; }}
-                .summary {{ background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+                .summary {{ background-color: #e8f5e8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; }}
+                .rec-area-header {{ color: #2E8B57; border-bottom: 2px solid #2E8B57; padding-bottom: 5px; margin: 20px 0 10px 0; }}
             </style>
         </head>
         <body>
@@ -270,7 +317,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         # Add tables grouped by recreation area
         for rec_area, facilities in sites_by_rec_area.items():
             html_body += f"""
-            <h1 style="color: #2E8B57; border-bottom: 2px solid #2E8B57; padding-bottom: 10px;">
+            <h1 class="rec-area-header">
                 🏞️ {rec_area}
             </h1>
             """
@@ -293,14 +340,15 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                 facility_sites.sort(key=lambda x: x['booking_date'])
                 
                 for site in facility_sites:
-                    # Remove time from booking_date (keep only date part)
+                    # Format date with relative time
                     booking_date = site['booking_date'].split('T')[0] if 'T' in site['booking_date'] else site['booking_date'].split(' ')[0]
+                    formatted_date = format_date_with_relative(booking_date)
                     nights = site.get('num_nights', 1)
                     booking_url = site['booking_url']
                     
                     html_body += f"""
                         <tr>
-                            <td>{booking_date}</td>
+                            <td>{formatted_date}</td>
                             <td>{nights} night{'s' if nights != 1 else ''}</td>
                             <td><a href="{booking_url}" class="book-link">Book Now</a></td>
                         </tr>
@@ -312,7 +360,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                 """
         
         html_body += """
-            <p style="margin-top: 30px; color: #666; font-size: 12px;">
+            <p style="margin-top: 20px; color: #666; font-size: 11px; line-height: 1.4;">
                 This is an automated notification from your Camply checker. 
                 Book quickly as availability changes frequently!
             </p>
@@ -320,20 +368,23 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         </html>
         """
         
-        # Send email
-        msg = MIMEMultipart('alternative')
-        msg['From'] = from_addr
-        msg['To'] = to_addr
-        msg['Subject'] = subject_line
+        # Send individual emails to each recipient
+        recipients = [addr.strip() for addr in to_addr.split(',')]
         
-        # Add HTML content
-        html_part = MIMEText(html_body, 'html')
-        msg.attach(html_part)
-        
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(username, password)
-            server.send_message(msg)
+        for recipient in recipients:
+            msg = MIMEMultipart('alternative')
+            msg['From'] = f"Camply Update <{from_addr}>"
+            msg['To'] = recipient
+            msg['Subject'] = subject_line
+            
+            # Add HTML content
+            html_part = MIMEText(html_body, 'html')
+            msg.attach(html_part)
+            
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(username, password)
+                server.send_message(msg)
         
         logger.info(f"Notification sent for {len(sites)} sites")
         
