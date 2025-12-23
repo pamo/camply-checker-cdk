@@ -92,6 +92,7 @@ def lambda_handler(event, context):
         ]
 
         all_results = []
+        all_changed_results = []
 
         for config in campgrounds:
             try:
@@ -141,18 +142,23 @@ def lambda_handler(event, context):
 
                     all_results.extend(sites_data)
 
-                    # Send notification only if results have changed
-                    if sites_data:
-                        if should_send_notification(sites_data, config['provider']):
-                            send_notification(sites_data, config['provider'])
-                        else:
-                            logger.info(f"No changes in availability for {config['provider']}, skipping notification")
+                    # Check if results have changed for this provider
+                    if sites_data and should_send_notification(sites_data, config['provider']):
+                        all_changed_results.extend(sites_data)
+                    elif sites_data:
+                        logger.info(f"No changes in availability for {config['provider']}")
                 else:
                     logger.info(f"No availability found for {config['provider']}")
 
             except Exception as e:
                 logger.error(f"Error searching {config['provider']}: {str(e)}")
                 continue
+
+        # Send single notification with all changed results
+        if all_changed_results:
+            send_notification(all_changed_results, "Multiple Providers")
+        else:
+            logger.info("No changes in availability across all providers, skipping notification")
 
         return {
             'statusCode': 200,
@@ -322,8 +328,16 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
             </div>
         """
 
-        # Add tables grouped by recreation area
-        for rec_area, facilities in sites_by_rec_area.items():
+        # Add tables grouped by recreation area, with Steep Ravine first
+        def sort_rec_areas(item):
+            rec_area = item[0]
+            if "Steep Ravine" in rec_area:
+                return "0"  # Sort first
+            return rec_area
+        
+        sorted_rec_areas = sorted(sites_by_rec_area.items(), key=sort_rec_areas)
+        
+        for rec_area, facilities in sorted_rec_areas:
             html_body += f"""
             <h1 class="rec-area-header">
                 🏞️ {rec_area}
@@ -379,23 +393,23 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         # Count unique recreation areas
         unique_rec_areas = len(sites_by_rec_area)
 
-        # Send individual emails to each recipient
+        # Send single email with BCC to avoid duplicate emails
         recipients = [addr.strip() for addr in to_addr.split(',')]
+        
+        msg = MIMEMultipart('alternative')
+        msg['From'] = f"Campground Monitor <{from_addr}>"
+        msg['To'] = from_addr  # Send to self to hide recipients
+        msg['Bcc'] = ', '.join(recipients)  # Use BCC for actual recipients
+        msg['Subject'] = f"Availability alert for {unique_rec_areas} area{'s' if unique_rec_areas != 1 else ''}"
 
-        for recipient in recipients:
-            msg = MIMEMultipart('alternative')
-            msg['From'] = f"Campground Monitor <{from_addr}>"
-            msg['To'] = recipient
-            msg['Subject'] = f"Availability alert for {unique_rec_areas} area{'s' if unique_rec_areas != 1 else ''}"
+        # Add HTML content
+        html_part = MIMEText(html_body, 'html')
+        msg.attach(html_part)
 
-            # Add HTML content
-            html_part = MIMEText(html_body, 'html')
-            msg.attach(html_part)
-
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()
-                server.login(username, password)
-                server.send_message(msg)
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(username, password)
+            server.send_message(msg, to_addrs=recipients)
 
         logger.info(f"Notification sent for {len(sites)} sites")
 
