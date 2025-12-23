@@ -133,9 +133,12 @@ def lambda_handler(event, context):
                     
                     all_results.extend(sites_data)
                     
-                    # Send notification if sites found
+                    # Send notification only if results have changed
                     if sites_data:
-                        send_notification(sites_data, config['provider'])
+                        if should_send_notification(sites_data, config['provider']):
+                            send_notification(sites_data, config['provider'])
+                        else:
+                            logger.info(f"No changes in availability for {config['provider']}, skipping notification")
                 else:
                     logger.info(f"No availability found for {config['provider']}")
                     
@@ -157,6 +160,57 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})
         }
+
+def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool:
+    """
+    Check if notification should be sent by comparing with last sent results
+    """
+    try:
+        import boto3
+        import hashlib
+        
+        s3 = boto3.client('s3')
+        bucket_name = os.environ.get('CACHE_BUCKET_NAME')
+        
+        if not bucket_name:
+            logger.warning("No cache bucket configured, sending notification")
+            return True
+        
+        # Create hash of current results
+        sites_key = f"{provider}_sites"
+        current_hash = hashlib.md5(str(sorted(sites, key=lambda x: x.get('campsite_id', ''))).encode()).hexdigest()
+        
+        try:
+            # Get last sent hash from S3
+            response = s3.get_object(Bucket=bucket_name, Key=f"last_sent_{sites_key}.txt")
+            last_hash = response['Body'].read().decode('utf-8').strip()
+            
+            if current_hash == last_hash:
+                return False  # No changes, don't send
+                
+        except s3.exceptions.NoSuchKey:
+            # First time running, no previous hash exists
+            pass
+        except Exception as e:
+            logger.warning(f"Error reading last sent hash: {str(e)}")
+        
+        # Store current hash for next comparison
+        try:
+            s3.put_object(
+                Bucket=bucket_name,
+                Key=f"last_sent_{sites_key}.txt",
+                Body=current_hash,
+                ContentType='text/plain'
+            )
+        except Exception as e:
+            logger.warning(f"Error storing current hash: {str(e)}")
+        
+        return True  # Send notification
+        
+    except Exception as e:
+        logger.error(f"Error in deduplication check: {str(e)}")
+        return True  # Default to sending on error
+
 
 def send_notification(sites: List[Dict[str, Any]], provider: str):
     """
