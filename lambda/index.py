@@ -166,6 +166,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
+        from collections import defaultdict
         
         # Email configuration from environment variables
         smtp_server = os.environ.get('EMAIL_SMTP_SERVER')
@@ -174,26 +175,106 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         password = os.environ.get('EMAIL_PASSWORD')
         from_addr = os.environ.get('EMAIL_FROM_ADDRESS')
         to_addr = os.environ.get('EMAIL_TO_ADDRESS')
+        subject_line = os.environ.get('EMAIL_SUBJECT_LINE', f'⛺️ Camply Update - {provider} ⛺️')
         
         if not all([smtp_server, username, password, from_addr, to_addr]):
             logger.warning("Email configuration incomplete, skipping notification")
             return
         
-        # Create email content
-        subject = f"Campsites Available - {provider}"
-        
-        body = f"Found {len(sites)} available campsites on {provider}:\n\n"
+        # Group sites by recreation area, then by facility
+        sites_by_rec_area = defaultdict(lambda: defaultdict(list))
         for site in sites:
-            body += f"• {site['facility_name']} - {site['campsite_site_name']}\n"
-            body += f"  Date: {site['booking_date']}\n"
-            body += f"  Book: {site['booking_url']}\n\n"
+            rec_area = site.get('recreation_area', site['facility_name'].split(' - ')[0] if ' - ' in site['facility_name'] else site['facility_name'])
+            facility_name = site['facility_name']  # Use full facility name instead of campsite_site_name
+            sites_by_rec_area[rec_area][facility_name].append(site)
+        
+        # Create HTML email content
+        html_body = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                h1 {{ color: #2E8B57; }}
+                h2 {{ color: #4682B4; margin-top: 30px; }}
+                table {{ border-collapse: collapse; width: 100%; margin: 15px 0; }}
+                th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+                th {{ background-color: #f2f2f2; font-weight: bold; }}
+                tr:nth-child(even) {{ background-color: #f9f9f9; }}
+                .book-link {{ background-color: #4CAF50; color: white; padding: 8px 16px; 
+                            text-decoration: none; border-radius: 4px; display: inline-block; }}
+                .book-link:hover {{ background-color: #45a049; }}
+                .summary {{ background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+            </style>
+        </head>
+        <body>
+            <h1>🏕️ Campsite Availability Alert</h1>
+            <div class="summary">
+                <strong>Found {len(sites)} available campsites on {provider}</strong>
+            </div>
+        """
+        
+        # Add tables grouped by recreation area
+        for rec_area, facilities in sites_by_rec_area.items():
+            html_body += f"""
+            <h1 style="color: #2E8B57; border-bottom: 2px solid #2E8B57; padding-bottom: 10px;">
+                🏞️ {rec_area}
+            </h1>
+            """
+            
+            for facility_name, facility_sites in facilities.items():
+                html_body += f"""
+                <h2>{facility_name}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """
+                
+                # Sort sites by date
+                facility_sites.sort(key=lambda x: x['booking_date'])
+                
+                for site in facility_sites:
+                    # Remove time from booking_date (keep only date part)
+                    booking_date = site['booking_date'].split('T')[0] if 'T' in site['booking_date'] else site['booking_date'].split(' ')[0]
+                    nights = site.get('num_nights', 1)
+                    booking_url = site['booking_url']
+                    
+                    html_body += f"""
+                        <tr>
+                            <td>{booking_date}</td>
+                            <td>{nights} night{'s' if nights != 1 else ''}</td>
+                            <td><a href="{booking_url}" class="book-link">Book Now</a></td>
+                        </tr>
+                    """
+                
+                html_body += """
+                    </tbody>
+                </table>
+                """
+        
+        html_body += """
+            <p style="margin-top: 30px; color: #666; font-size: 12px;">
+                This is an automated notification from your Camply checker. 
+                Book quickly as availability changes frequently!
+            </p>
+        </body>
+        </html>
+        """
         
         # Send email
-        msg = MIMEMultipart()
+        msg = MIMEMultipart('alternative')
         msg['From'] = from_addr
         msg['To'] = to_addr
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
+        msg['Subject'] = subject_line
+        
+        # Add HTML content
+        html_part = MIMEText(html_body, 'html')
+        msg.attach(html_part)
         
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
