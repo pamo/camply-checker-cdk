@@ -1,0 +1,92 @@
+name: Smart Auto Recovery
+
+on:
+  schedule:
+    # Check every 15 minutes for faster response
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  smart-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Check for architecture failures
+        id: check-failure
+        run: |
+          # Check for Runtime.InvalidEntrypoint errors in last 20 minutes
+          ERRORS=$(aws logs filter-log-events \
+            --log-group-name "/aws/lambda/CamplyStack-prod-LambdaFunction9233991D-ioXwYaVrK7uB" \
+            --start-time $(date -v-20M +%s)000 \
+            --filter-pattern "Runtime.InvalidEntrypoint" \
+            --query 'length(events)' \
+            --output text)
+          
+          if [ "$ERRORS" != "0" ] && [ "$ERRORS" != "None" ]; then
+            echo "🚨 Architecture failure detected in last 20 minutes"
+            echo "needs_recovery=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No architecture failures detected"
+            echo "needs_recovery=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        run: npm ci
+
+      - name: Clean Docker and redeploy
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        run: |
+          echo "🔧 Cleaning Docker cache and redeploying..."
+          docker system prune -af
+          npm run deploy:prod
+
+      - name: Verify recovery
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        run: |
+          echo "⏳ Waiting 30 seconds for deployment to complete..."
+          sleep 30
+          aws lambda invoke --function-name CamplyStack-prod-LambdaFunction9233991D-ioXwYaVrK7uB response.json
+          if [ $? -eq 0 ]; then
+            echo "✅ Recovery successful - Lambda responding"
+          else
+            echo "❌ Recovery failed - Lambda still not responding"
+            exit 1
+          fi
+
+      - name: Send recovery notification
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🔧 Camply Auto-Recovery Completed"
+          body: |
+            🚨 Your Camply system detected Docker architecture failures and automatically recovered!
+            
+            ✅ Docker cache cleared
+            ✅ Lambda function redeployed  
+            ✅ System verified working
+            
+            Recovery completed at: ${{ github.run_started_at }}
+            
+            Your campsite monitoring is now running normally again.
+          to: ${{ secrets.EMAIL_TO_ADDRESS }}
+          from: ${{ secrets.EMAIL_FROM_ADDRESS }}
