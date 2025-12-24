@@ -39,6 +39,9 @@ export class CamplyLambda extends Construct {
           buildArgs: {
             CACHE_BUST: Date.now().toString(),
           },
+          buildOptions: {
+            platform: 'linux/arm64',
+          },
         }),
         handler: lambda.Handler.FROM_IMAGE,
         architecture: lambda.Architecture.ARM_64,
