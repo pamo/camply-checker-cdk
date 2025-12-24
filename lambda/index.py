@@ -137,7 +137,8 @@ def lambda_handler(event, context):
                             'facility_name': site.facility_name,
                             'booking_url': site.booking_url,
                             'recreation_area': site.recreation_area,
-                            'campsite_type': site.campsite_type
+                            'campsite_type': site.campsite_type,
+                            'campground_id': getattr(site, 'campground_id', None)  # Add campground ID for sorting
                         })
 
                     all_results.extend(sites_data)
@@ -328,11 +329,15 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
             </div>
         """
 
-        # Add tables grouped by recreation area, with Steep Ravine first
+        # Add tables grouped by recreation area, with Steep Ravine campgrounds (IDs 766, 590) first
         def sort_rec_areas(item):
-            rec_area = item[0]
-            if "Steep Ravine" in rec_area:
-                return "0"  # Sort first
+            rec_area, facilities = item
+            # Check if any sites in this recreation area are from Steep Ravine campgrounds
+            for facility_sites in facilities.values():
+                for site in facility_sites:
+                    campground_id = site.get('campground_id')
+                    if campground_id in [766, 590]:  # Steep Ravine campground IDs
+                        return "0"  # Sort first
             return rec_area
         
         sorted_rec_areas = sorted(sites_by_rec_area.items(), key=sort_rec_areas)

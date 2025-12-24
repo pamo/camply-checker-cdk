@@ -81,8 +81,6 @@ describe('CamplyStack', () => {
     template.resourceCountIs('AWS::Lambda::Function', 2); // Main function + S3 auto-delete custom resource
     template.resourceCountIs('AWS::S3::Bucket', 1);
     template.resourceCountIs('AWS::Events::Rule', 1);
-    template.resourceCountIs('AWS::SNS::Topic', 1);
-    template.resourceCountIs('AWS::SNS::Subscription', 1);
     template.resourceCountIs('AWS::CloudWatch::Alarm', 7); // Error, Duration, Throttle, EmailDeliveryFailure, EmailSuccessRate, SecretRetrievalFailure, S3OperationFailure
   });
 
@@ -120,20 +118,6 @@ describe('CamplyStack', () => {
   });
 
   test('Secrets Manager Secret Created', () => {
-  });
-
-  test('SNS Topic Created for Alerts', () => {
-    template.hasResourceProperties('AWS::SNS::Topic', {
-      DisplayName: 'Camply Lambda Alerts',
-    });
-  });
-
-  test('SNS Email Subscription Created', () => {
-    template.hasResourceProperties('AWS::SNS::Subscription', {
-      Protocol: 'email',
-      TopicArn: Match.anyValue(),
-      Endpoint: Match.anyValue(),
-    });
   });
 
   test('CloudWatch Error Alarm Created', () => {
@@ -175,15 +159,6 @@ describe('CamplyStack', () => {
       Statistic: 'Sum',
       Threshold: 1,
       TreatMissingData: 'notBreaching',
-    });
-  });
-
-  test('All CloudWatch Alarms have SNS Actions', () => {
-    const alarms = template.findResources('AWS::CloudWatch::Alarm');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Object.values(alarms).forEach((alarm: any) => {
-      expect(alarm.Properties.AlarmActions).toBeDefined();
-      expect(alarm.Properties.AlarmActions.length).toBeGreaterThan(0);
     });
   });
 });

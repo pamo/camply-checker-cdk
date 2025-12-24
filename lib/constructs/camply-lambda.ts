@@ -2,9 +2,6 @@ import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as sns from 'aws-cdk-lib/aws-sns';
-import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
-import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 import { Construct } from 'constructs';
@@ -19,7 +16,6 @@ interface CamplyLambdaProps {
   emailSmtpServer: string;
   emailSmtpPort: string;
   emailFromAddress: string;
-  alertEmailAddress: string;
 }
 
 export class CamplyLambda extends Construct {
@@ -102,15 +98,7 @@ export class CamplyLambda extends Construct {
       })
     );
 
-    // Create SNS topic for alerts - use the same email as emailToAddress
-    const alertTopic = new sns.Topic(this, 'AlertTopic', {
-      displayName: 'Camply Lambda Alerts',
-    });
-
-    // Use dedicated alert email address for CloudWatch SNS notifications
-    alertTopic.addSubscription(new snsSubscriptions.EmailSubscription(props.alertEmailAddress));
-
-    // Error rate alarm
+    // CloudWatch alarms for monitoring
     const errorAlarm = new cloudwatch.Alarm(this, 'ErrorAlarm', {
       metric: this.function.metricErrors({
         period: cdk.Duration.minutes(5),
@@ -121,9 +109,6 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    errorAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
-
-    // Duration alarm (if function takes too long)
     const durationAlarm = new cloudwatch.Alarm(this, 'DurationAlarm', {
       metric: this.function.metricDuration({
         period: cdk.Duration.minutes(5),
@@ -135,9 +120,6 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    durationAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
-
-    // Throttle alarm
     const throttleAlarm = new cloudwatch.Alarm(this, 'ThrottleAlarm', {
       metric: this.function.metricThrottles({
         period: cdk.Duration.minutes(5),
@@ -148,7 +130,7 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    throttleAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
 
     // Email delivery failure alarm
     const emailFailureAlarm = new cloudwatch.Alarm(this, 'EmailDeliveryFailureAlarm', {
@@ -165,7 +147,6 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    emailFailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
 
     // Email delivery success rate alarm (trigger if success rate drops below 80%)
     const emailSuccessRateAlarm = new cloudwatch.Alarm(this, 'EmailSuccessRateAlarm', {
@@ -182,7 +163,7 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    emailSuccessRateAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
 
     // Secret retrieval failure alarm
     const secretFailureAlarm = new cloudwatch.Alarm(this, 'SecretRetrievalFailureAlarm', {
@@ -199,7 +180,7 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    secretFailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
 
     // S3 operation failure alarm
     const s3FailureAlarm = new cloudwatch.Alarm(this, 'S3OperationFailureAlarm', {
@@ -216,6 +197,6 @@ export class CamplyLambda extends Construct {
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
-    s3FailureAlarm.addAlarmAction(new cloudwatchActions.SnsAction(alertTopic));
+
   }
 }
