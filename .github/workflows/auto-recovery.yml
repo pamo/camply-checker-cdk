@@ -70,24 +70,24 @@ jobs:
             exit 1
           fi
 
-      - name: Send recovery notification
-        if: steps.check-failure.outputs.needs_recovery == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "🔧 Camply Auto-Recovery Completed"
-          body: |
-            🚨 Your Camply system detected Docker architecture failures and automatically recovered!
+     # - name: Send recovery notification
+     #   if: steps.check-failure.outputs.needs_recovery == 'true'
+     #   uses: dawidd6/action-send-mail@v3
+     #   with:
+     #     server_address: smtp.gmail.com
+     #     server_port: 587
+     #     username: ${{ secrets.EMAIL_USERNAME }}
+     #     password: ${{ secrets.EMAIL_PASSWORD }}
+     #     subject: "🔧 Camply Auto-Recovery Completed"
+     #     body: |
+     #       🚨 Your Camply system detected Docker architecture failures and automatically recovered!
             
-            ✅ Docker cache cleared
-            ✅ Lambda function redeployed  
-            ✅ System verified working
+      #      ✅ Docker cache cleared
+      #      ✅ Lambda function redeployed  
+     #       ✅ System verified working
             
-            Recovery completed at: ${{ github.run_started_at }}
+     #       Recovery completed at: ${{ github.run_started_at }}
             
-            Your campsite monitoring is now running normally again.
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_FROM_ADDRESS }}
+     #       Your campsite monitoring is now running normally again.
+     #     to: ${{ secrets.EMAIL_USERNAME }}
+     #     from: ${{ secrets.EMAIL_FROM_ADDRESS }}
