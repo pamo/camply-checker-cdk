@@ -88,5 +88,5 @@ jobs:
             Recovery completed at: ${{ github.run_started_at }}
             
             Your campsite monitoring is now running normally again.
-          to: ${{ secrets.EMAIL_TO_ADDRESS }}
+          to: ${{ secrets.EMAIL_USERNAME }}
           from: ${{ secrets.EMAIL_FROM_ADDRESS }}
