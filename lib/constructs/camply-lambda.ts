@@ -34,6 +34,7 @@ export class CamplyLambda extends Construct {
           cmd: ['index.lambda_handler'],
           buildArgs: {
             CACHE_BUST: Date.now().toString(),
+            FORCE_REBUILD: Math.random().toString(36),
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
