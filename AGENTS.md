@@ -6,16 +6,17 @@ An AWS Lambda-based campsite availability checker that monitors popular Californ
 
 - **Monitors campgrounds** for availability using camply v0.33.1
 - **Sends email notifications** when campsites become available
-- **Runs on a schedule** via EventBridge (configurable interval)
+- **Runs on a schedule** via EventBridge (every 30 minutes)
 - **Tracks multiple providers**: Recreation.gov and ReserveCalifornia
-- **Includes monitoring** with CloudWatch alarms and SNS alerts
-- **Simplified implementation** - No numpy conflicts, minimal dependencies
+- **Includes monitoring** with CloudWatch alarms and GitHub Actions auto-recovery
+- **Email deduplication** - Only sends notifications when availability actually changes
+- **Smart prioritization** - Steep Ravine sites appear first in emails
 
 ## Monitored Campgrounds
 
 ### ReserveCalifornia
-- Steep Ravine (ID: 766)
-- Steep Ravine Campgrounds (ID: 590) 
+- Steep Ravine (ID: 766) - **Prioritized**
+- Steep Ravine Campgrounds (ID: 590) - **Prioritized**
 - Pantoll Campground (ID: 2009)
 - Frank Valley Horse Campground (ID: 589)
 - Bootjack Campground (ID: 2008)
@@ -23,13 +24,16 @@ An AWS Lambda-based campsite availability checker that monitors popular Californ
 
 ### Recreation.gov
 - Sardine Peak Lookout (ID: 252037)
+- Point Reyes National Seashore Campground (ID: 233359) - **Hike-in sites only**
 
 ## Architecture
 
 ```
 EventBridge Rule → Lambda Function → Email Notifications
+                      ↓                    ↓
+                 CloudWatch Metrics    S3 Cache (deduplication)
                       ↓
-                 CloudWatch Metrics → SNS Alerts
+              GitHub Actions Auto-Recovery
 ```
 
 ## Prerequisites
@@ -44,19 +48,16 @@ Create a `.env` file in the root directory:
 
 ```bash
 # Email Configuration (Required)
-EMAIL_TO_ADDRESS="your-email@example.com"
+EMAIL_TO_ADDRESS="your-email@example.com,second-email@example.com"
 EMAIL_USERNAME="your-smtp-username"
 EMAIL_PASSWORD="your-smtp-password"
 EMAIL_SMTP_SERVER="smtp.gmail.com"
 EMAIL_SMTP_PORT="587"
 EMAIL_FROM_ADDRESS="camply@your-domain.com"
-EMAIL_SUBJECT_LINE="Camply Notification"
+EMAIL_SUBJECT_LINE="⛺️ Camply Update ⛺️"
 
 # Search Configuration
-SEARCH_WINDOW_DAYS="14"
-
-# Alert Configuration
-ALERT_EMAIL_ADDRESS="alerts@your-domain.com"
+SEARCH_WINDOW_DAYS="90"
 ```
 
 ### Email Setup Options
@@ -67,14 +68,6 @@ EMAIL_SMTP_SERVER="smtp.gmail.com"
 EMAIL_SMTP_PORT="587"
 EMAIL_USERNAME="your-gmail@gmail.com"
 EMAIL_PASSWORD="your-app-password"  # Use App Password, not regular password
-```
-
-**Outlook:**
-```bash
-EMAIL_SMTP_SERVER="smtp-mail.outlook.com"
-EMAIL_SMTP_PORT="587"
-EMAIL_USERNAME="your-email@outlook.com"
-EMAIL_PASSWORD="your-password"
 ```
 
 ## Deployment
@@ -104,14 +97,36 @@ npm run deploy:dev
 npm run deploy:prod
 ```
 
-## Recent Updates (v2.0 - Simplified)
+## Auto-Recovery System
 
-This repository has been updated with a simplified implementation that:
-- ✅ **Fixes numpy dependency issues** - Uses lightweight Python 3.11 base image
-- ✅ **Reduces complexity** - Minimal dependencies (camply + boto3 only)
-- ✅ **Improves reliability** - Uses correct camply v0.33.1 API patterns
-- ✅ **Reduces costs** - Lower memory usage (256MB vs 512MB)
-- ✅ **Faster deployments** - Smaller Docker image, faster cold starts
+The system includes GitHub Actions-based auto-recovery that:
+- **Monitors every 15 minutes** for Docker architecture failures
+- **Automatically fixes** Lambda deployment issues
+- **Sends recovery notifications** via direct SMTP
+- **Works while camping** - No manual intervention needed
+
+### Setup GitHub Actions Auto-Recovery
+
+1. Add these GitHub repository secrets:
+   - `AWS_ACCESS_KEY_ID`: Your AWS access key
+   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
+   - `EMAIL_USERNAME`: Your Gmail username
+   - `EMAIL_PASSWORD`: Your Gmail app password
+   - `EMAIL_TO_ADDRESS`: Notification recipients
+   - `EMAIL_FROM_ADDRESS`: Sender email
+
+2. The workflow automatically triggers every 15 minutes to check system health
+
+## Recent Updates (v3.0 - Production Ready)
+
+This repository has been updated with production-ready features:
+- ✅ **Email deduplication** - Uses S3 cache to prevent duplicate notifications
+- ✅ **Smart prioritization** - Steep Ravine sites appear first using campground IDs
+- ✅ **Combined notifications** - Single email per run instead of separate emails per provider
+- ✅ **Point Reyes filtering** - Only includes hike-in sites, excludes boat-in
+- ✅ **Auto-recovery system** - GitHub Actions automatically fixes Docker issues
+- ✅ **Simplified monitoring** - Removed problematic SNS, uses direct SMTP
+- ✅ **Architecture resilience** - Handles Docker cache pollution automatically
 
 ## Configuration Options
 
@@ -126,78 +141,52 @@ Edit `lambda/index.py`:
 ```python
 campgrounds = [
     # Recreation.gov campgrounds
-    {'provider': 'RecreationDotGov', 'campgrounds': [YOUR_CAMPGROUND_ID]},
+    {'provider': 'RecreationDotGov', 'campgrounds': [252037, 233359]},
     
     # ReserveCalifornia campgrounds  
-    {'provider': 'ReserveCalifornia', 'campgrounds': [YOUR_CAMPGROUND_ID]},
+    {'provider': 'ReserveCalifornia', 'campgrounds': [766, 590, 2009, 589, 2008, 518]},
 ]
 ```
 
 ## Monitoring & Alerts
 
-The system includes CloudWatch alarms for:
-- Lambda function errors
-- Function timeouts (>3 minutes)
-- Function throttling
-- Email delivery failures
-
-Alerts are sent to the `ALERT_EMAIL_ADDRESS` configured in your `.env` file.
+The system includes:
+- **CloudWatch alarms** for Lambda errors, timeouts, and throttling
+- **GitHub Actions monitoring** every 15 minutes
+- **Auto-recovery** for Docker architecture issues
+- **Direct email notifications** for system recovery
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Lambda timeout:**
-- Current timeout is 3 minutes (reduced from 5)
-- Reduce number of campgrounds being checked if needed
-
-**Email delivery failures:**
-- Verify SMTP credentials
-- Check if using App Passwords for Gmail
-- Ensure firewall allows SMTP traffic
+**Docker architecture errors:**
+- **Auto-fixed** by GitHub Actions within 15 minutes
+- Manual fix: `docker system prune -f && npm run deploy:prod`
 
 **No availability notifications:**
 - Check CloudWatch logs for search results
 - Verify campground IDs are correct
-- Test with shorter search window
+- Clear S3 cache if needed: `aws s3 rm s3://bucket/last_sent_*.txt`
 
 ### Viewing Logs
 ```bash
 # View Lambda logs
-aws logs tail /aws/lambda/CamplyStack-Lambda --follow
+AWS_PROFILE=camply-checker aws logs tail /aws/lambda/CamplyStack-prod-LambdaFunction... --follow
 
-# View specific log group
-aws logs describe-log-groups --log-group-name-prefix "/aws/lambda/CamplyStack"
+# Check recent executions
+AWS_PROFILE=camply-checker aws logs filter-log-events --log-group-name "/aws/lambda/CamplyStack-prod-LambdaFunction..." --since 1h
 ```
 
 ### Manual Testing
 ```bash
 # Test Lambda function directly
-aws lambda invoke --function-name CamplyStack-Lambda response.json
+AWS_PROFILE=camply-checker aws lambda invoke --function-name CamplyStack-prod-LambdaFunction... response.json
 cat response.json
-```
 
-## Re-enabling After Manual Disable
-
-If you manually disabled EventBridge rules or CloudWatch alarms:
-
-### Option 1: Redeploy (Recommended)
-```bash
-npm run build
-npm run deploy:dev  # or deploy:prod
-```
-
-### Option 2: Manual Re-enable via Console
-1. **EventBridge**: Go to EventBridge → Rules → Enable the rule
-2. **CloudWatch**: Go to CloudWatch → Alarms → Select alarms → Actions → Enable
-
-### Option 3: CLI Re-enable
-```bash
-# Re-enable EventBridge rule
-aws events enable-rule --name "CamplyStack-ScheduleRule"
-
-# Re-enable CloudWatch alarms
-aws cloudwatch enable-alarm-actions --alarm-names "CamplyStack-ErrorAlarm"
+# Clear cache to force new email
+AWS_PROFILE=camply-checker aws s3 rm s3://bucket/last_sent_RecreationDotGov_sites.txt
+AWS_PROFILE=camply-checker aws s3 rm s3://bucket/last_sent_ReserveCalifornia_sites.txt
 ```
 
 ## Development
@@ -205,37 +194,36 @@ aws cloudwatch enable-alarm-actions --alarm-names "CamplyStack-ErrorAlarm"
 ### Local Testing
 ```bash
 # Test camply functionality
-python test_simplified.py
-
-# Test specific campgrounds (requires virtual environment)
 python3 -m venv test_env
 source test_env/bin/activate
 pip install camply==0.33.1
-python test_simplified.py
+python research_campground.py
 ```
 
 ### Updating Campgrounds
 1. Find campground IDs using camply CLI or recreation.gov
 2. Update `lambda/index.py`
-3. Redeploy: `npm run deploy:dev`
+3. Redeploy: `npm run deploy:prod`
 
 ## Cost Estimation
 
 **Monthly costs (approximate):**
-- Lambda: $0.15 (reduced from $0.20 due to lower memory)
-- CloudWatch: $0.30 (reduced logging)
-- SNS: $0.50 (email notifications)
-- **Total: ~$0.95/month** (down from $1.20)
+- Lambda: $0.15 (256MB memory, 30-min intervals)
+- CloudWatch: $0.20 (reduced logging)
+- S3: $0.05 (cache storage)
+- GitHub Actions: Free (within limits)
+- **Total: ~$0.40/month** (reduced from $0.95 due to SNS removal)
 
 ## Security Notes
 
-- SMTP credentials are stored as environment variables
-- Consider using AWS Secrets Manager for production
-- Lambda has minimal IAM permissions (S3, CloudWatch, SNS only)
+- SMTP credentials stored as environment variables
+- AWS credentials rotated regularly
+- Lambda has minimal IAM permissions (S3, CloudWatch only)
+- GitHub Actions uses repository secrets for credentials
 
 ## Support
 
 For issues with:
 - **Camply library**: [juftin/camply GitHub](https://github.com/juftin/camply)
 - **AWS CDK**: [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-- **This implementation**: Check CloudWatch logs and GitHub issues
+- **Auto-recovery**: Check GitHub Actions workflow logs
