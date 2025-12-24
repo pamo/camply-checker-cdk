@@ -53,8 +53,9 @@ jobs:
         if: steps.check-failure.outputs.needs_recovery == 'true'
         run: |
           echo "🔧 Cleaning Docker cache and redeploying..."
-          docker system prune -af
-          npm run deploy:prod
+          docker system prune -af --volumes
+          npm run build
+          npx cdk deploy --all -c env=prod --require-approval never
 
       - name: Verify recovery
         if: steps.check-failure.outputs.needs_recovery == 'true'
