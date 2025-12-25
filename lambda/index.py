@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Simplified Lambda handler for camply campsite checking
+    Simplified Lambda handler for campground checking
     """
     try:
         # Set up writable directories for camply BEFORE importing
@@ -129,7 +129,7 @@ def lambda_handler(event, context):
                                 pass  # Include this site
                             else:
                                 continue  # Skip boat-in and other types
-                        
+
                         sites_data.append({
                             'campsite_id': site.campsite_id,
                             'booking_date': site.booking_date.isoformat() if site.booking_date else None,
@@ -160,6 +160,14 @@ def lambda_handler(event, context):
             send_notification(all_changed_results, "Multiple Providers")
         else:
             logger.info("No changes in availability across all providers, skipping notification")
+
+        # Only generate dashboard if there are changes or it's been a while
+        should_update_dashboard = bool(all_changed_results) or should_force_dashboard_update()
+
+        if should_update_dashboard:
+            generate_dashboard(all_results)
+        else:
+            logger.info("No changes detected, skipping dashboard update")
 
         return {
             'statusCode': 200,
@@ -273,6 +281,106 @@ def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool
         return True  # Default to sending on error
 
 
+def should_force_dashboard_update():
+    """Check if dashboard should be updated even without changes (every 6 hours)"""
+    try:
+        import boto3
+        from datetime import datetime, timedelta
+
+        s3 = boto3.client('s3')
+        bucket_name = os.environ.get('CACHE_BUCKET_NAME')
+
+        if not bucket_name:
+            return True
+
+        try:
+            response = s3.head_object(Bucket=bucket_name, Key='dashboard_last_updated.txt')
+            last_modified = response['LastModified'].replace(tzinfo=None)
+            six_hours_ago = datetime.utcnow() - timedelta(hours=6)
+            return last_modified < six_hours_ago
+        except:
+            return True  # Force update if we can't check
+    except:
+        return True
+
+
+_template_cache = None
+
+def get_template():
+    """Get template with caching"""
+    global _template_cache
+    if _template_cache is None:
+        try:
+            with open('/var/task/template.html', 'r') as f:
+                _template_cache = f.read()
+        except FileNotFoundError:
+            _template_cache = """<!DOCTYPE html>
+<html><head><title>Campground Dashboard</title></head>
+<body><h1>Dashboard</h1><div id="sites">{{SITES_JSON}}</div></body></html>"""
+    return _template_cache
+
+
+def generate_dashboard(all_sites):
+    """Generate and upload dashboard to S3 using template"""
+    try:
+        import boto3
+        from datetime import datetime
+        import json
+
+        s3 = boto3.client('s3')
+        bucket_name = os.environ.get('CACHE_BUCKET_NAME')
+
+        if not bucket_name:
+            logger.warning('No cache bucket configured')
+            return
+
+        template = get_template()
+
+        sites_data = []
+        areas = set()
+        for site in all_sites:
+            area = site.get('recreation_area', 'Unknown')
+            areas.add(area)
+
+            formatted_date = format_date_with_relative(site.get('booking_date')) if site.get('booking_date') else 'No date'
+
+            sites_data.append({
+                'name': site.get('facility_name', 'Unknown'),
+                'site_name': site.get('campsite_site_name', 'Unknown'),
+                'booking_date': site.get('booking_date'),
+                'formatted_date': formatted_date,
+                'url': site.get('booking_url', '#'),
+                'recreation_area': area,
+                'campground_id': site.get('campground_id')
+            })
+
+        area_options = ''.join(f'<option value="{area}">{area}</option>' for area in sorted(areas))
+
+        html_content = template.replace('{{LAST_UPDATED}}', datetime.utcnow().isoformat() + 'Z')
+        html_content = html_content.replace('{{TOTAL_SITES}}', str(len(sites_data)))
+        html_content = html_content.replace('{{TOTAL_AREAS}}', str(len(areas)))
+        html_content = html_content.replace('{{SITES_DATA}}', json.dumps(sites_data))
+        html_content = html_content.replace('{{EMAIL_CONTENT}}', '<h1>Campsite Availability Alert</h1><p>Dashboard with filtering available above.</p>')
+
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='dashboard.html',
+            Body=html_content,
+            ContentType='text/html'
+        )
+
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='dashboard_last_updated.txt',
+            Body=datetime.utcnow().isoformat(),
+            ContentType='text/plain'
+        )
+
+        logger.info(f'Dashboard updated with {len(sites_data)} sites')
+
+    except Exception as e:
+        logger.error(f'Failed to generate dashboard: {str(e)}')
+
 def send_notification(sites: List[Dict[str, Any]], provider: str):
     """
     Send email notification for available campsites
@@ -290,7 +398,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         password = os.environ.get('EMAIL_PASSWORD')
         from_addr = os.environ.get('EMAIL_FROM_ADDRESS')
         to_addr = os.environ.get('EMAIL_TO_ADDRESS')
-        subject_line = os.environ.get('EMAIL_SUBJECT_LINE', f'⛺️ Camply Update - {provider} ⛺️')
+        subject_line = os.environ.get('EMAIL_SUBJECT_LINE', f' Campground Update - {provider} ')
 
         if not all([smtp_server, username, password, from_addr, to_addr]):
             logger.warning("Email configuration incomplete, skipping notification")
@@ -309,13 +417,16 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         <head>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 15px; line-height: 1.3; }}
+                .browser-link {{ color: #888; font-size: 11px; text-align: center; margin-bottom: 15px; }}
+                .browser-link a {{ color: #888; text-decoration: none; }}
+                .browser-link a:hover {{ text-decoration: underline; }}
                 h1 {{ color: #2E8B57; margin: 10px 0; font-size: 20px; }}
                 h2 {{ color: #4682B4; margin: 15px 0 8px 0; font-size: 16px; }}
                 table {{ border-collapse: collapse; width: 100%; margin: 8px 0 20px 0; }}
                 th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }}
                 th {{ background-color: #f2f2f2; font-weight: bold; }}
                 tr:nth-child(even) {{ background-color: #f9f9f9; }}
-                .book-link {{ background-color: #4CAF50; color: white; padding: 6px 12px;
+                .book-link {{ background-color: #4CAF50; color: #e8f5e8; padding: 6px 12px;
                             text-decoration: none; border-radius: 3px; display: inline-block; font-size: 12px; }}
                 .book-link:hover {{ background-color: #45a049; }}
                 .summary {{ background-color: #e8f5e8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; }}
@@ -323,7 +434,10 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
             </style>
         </head>
         <body>
-            <h1>🏕️ Campsite Availability Alert</h1>
+            <div class="browser-link">
+                <a href="https://{os.environ.get('CACHE_BUCKET_NAME', 'bucket')}.s3.{os.environ.get('AWS_REGION', 'us-west-1')}.amazonaws.com/dashboard.html">View this in your browser</a>
+            </div>
+            <h1> Campsite Availability Alert</h1>
             <div class="summary">
                 <strong>Found {len(sites)} available campsites on {provider}</strong>
             </div>
@@ -339,13 +453,13 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     if campground_id in [766, 590]:  # Steep Ravine campground IDs
                         return "0"  # Sort first
             return rec_area
-        
+
         sorted_rec_areas = sorted(sites_by_rec_area.items(), key=sort_rec_areas)
-        
+
         for rec_area, facilities in sorted_rec_areas:
             html_body += f"""
             <h1 class="rec-area-header">
-                🏞️ {rec_area}
+                 {rec_area}
             </h1>
             """
 
@@ -388,7 +502,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
 
         html_body += """
             <p style="margin-top: 20px; color: #666; font-size: 11px; line-height: 1.4;">
-                This is an automated notification from your Camply checker.
+                This is an automated notification from your Campground checker.
                 Book quickly as availability changes frequently!
             </p>
         </body>
@@ -400,7 +514,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
 
         # Send single email with BCC to avoid duplicate emails
         recipients = [addr.strip() for addr in to_addr.split(',')]
-        
+
         msg = MIMEMultipart('alternative')
         msg['From'] = f"Campground Monitor <{from_addr}>"
         msg['To'] = from_addr  # Send to self to hide recipients

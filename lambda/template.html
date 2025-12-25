@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campground Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .filters {
+        background: #e8f5e8;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+      .filter-group {
+        display: inline-block;
+        margin-right: 20px;
+      }
+      select,
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .stats {
+        background: #f0f8ff;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+      .email-preview {
+        border: 2px solid #4caf50;
+        border-radius: 8px;
+        padding: 20px;
+        background: white;
+      }
+      h1 {
+        color: #2e8b57;
+        margin: 10px 0;
+        font-size: 20px;
+      }
+      h2 {
+        color: #4682b4;
+        margin: 15px 0 8px 0;
+        font-size: 16px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 8px 0 20px 0;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      .book-link,
+      .filter-group button {
+        background-color: #4caf50;
+        color: #e8f5e8;
+        padding: 6px 12px;
+        text-decoration: none;
+        border-radius: 3px;
+        display: inline-block;
+        font-size: 12px;
+        border: 0;
+      }
+      .book-link:hover,
+      .filter-group button:hover {
+        cursor: pointer;
+        background-color: #45a049;
+      }
+      .summary {
+        background-color: #e8f5e8;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 14px;
+      }
+      .rec-area-header {
+        color: #2e8b57;
+        border-bottom: 2px solid #2e8b57;
+        padding-bottom: 5px;
+        margin: 20px 0 10px 0;
+      }
+      .last-updated {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 20px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🏕️ Campground Dashboard</h1>
+
+      <div class="last-updated">Last updated: <span id="lastUpdated">{{LAST_UPDATED}}</span></div>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label>Area:</label>
+          <select id="areaFilter">
+            <option value="">All Areas</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date Range:</label>
+          <input type="date" id="startDate" />
+          <input type="date" id="endDate" />
+        </div>
+        <div class="filter-group">
+          <button onclick="applyFilters()">Apply Filters</button>
+          <button onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats">
+        Found <span id="totalSites">{{TOTAL_SITES}}</span> available campsites across
+        <span id="totalAreas">{{TOTAL_AREAS}}</span> areas
+      </div>
+
+      <div class="email-preview">
+        <div id="emailContent">{{EMAIL_CONTENT}}</div>
+      </div>
+    </div>
+
+    <script>
+      const lastUpdatedElement = document.getElementById('lastUpdated');
+      const utcTime = lastUpdatedElement.textContent;
+      const localTime = new Date(utcTime).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+      lastUpdatedElement.textContent = localTime;
+
+      const sitesData = {{SITES_DATA}};
+      let filteredData = sitesData;
+
+      // Populate area filter
+      const areas = [...new Set(sitesData.map(site => site.recreation_area))];
+      const areaFilter = document.getElementById('areaFilter');
+      areas.forEach(area => {
+          const option = document.createElement('option');
+          option.value = area;
+          option.textContent = area;
+          areaFilter.appendChild(option);
+      });
+
+      function applyFilters() {
+          const areaFilter = document.getElementById('areaFilter').value;
+          const startDate = document.getElementById('startDate').value;
+          const endDate = document.getElementById('endDate').value;
+
+          filteredData = sitesData.filter(site => {
+              if (areaFilter && site.recreation_area !== areaFilter) return false;
+              if (startDate && site.booking_date < startDate) return false;
+              if (endDate && site.booking_date > endDate) return false;
+              return true;
+          });
+
+          updateDisplay();
+      }
+
+      function clearFilters() {
+          document.getElementById('areaFilter').value = '';
+          document.getElementById('startDate').value = '';
+          document.getElementById('endDate').value = '';
+          filteredData = sitesData;
+          updateDisplay();
+      }
+
+      function updateDisplay() {
+          // Update stats
+          const uniqueAreas = [...new Set(filteredData.map(site => site.recreation_area))];
+          document.getElementById('totalSites').textContent = filteredData.length;
+          document.getElementById('totalAreas').textContent = uniqueAreas.length;
+
+          // Group sites by recreation area, then by facility
+          const sitesByArea = {};
+          filteredData.forEach(site => {
+              const area = site.recreation_area;
+              const facility = site.name;
+              if (!sitesByArea[area]) sitesByArea[area] = {};
+              if (!sitesByArea[area][facility]) sitesByArea[area][facility] = [];
+              sitesByArea[area][facility].push(site);
+          });
+
+          // Generate email content
+          let emailContent = `
+              <h1>🏕️ Campsite Availability Alert</h1>
+              <div class="summary">
+                  <strong>Found ${filteredData.length} available campsites across ${uniqueAreas.length} areas</strong>
+              </div>
+          `;
+
+          // Sort areas to put Steep Ravine first
+          const sortedAreas = Object.entries(sitesByArea).sort(([areaA], [areaB]) => {
+              const hasStepRavineA = Object.values(sitesByArea[areaA]).some(sites =>
+                  sites.some(site => [766, 590].includes(site.campground_id))
+              );
+              const hasStepRavineB = Object.values(sitesByArea[areaB]).some(sites =>
+                  sites.some(site => [766, 590].includes(site.campground_id))
+              );
+              if (hasStepRavineA && !hasStepRavineB) return -1;
+              if (!hasStepRavineA && hasStepRavineB) return 1;
+              return areaA.localeCompare(areaB);
+          });
+
+          sortedAreas.forEach(([area, facilities]) => {
+              emailContent += `<h1 class="rec-area-header">🏞️ ${area}</h1>`;
+
+              if (facilities && typeof facilities === 'object') {
+                  Object.entries(facilities).forEach(([facility, sites]) => {
+                  emailContent += `<h2>${facility}</h2>`;
+                  emailContent += `
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Available Date</th>
+                                  <th>Nights</th>
+                                  <th>Book Now</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                  `;
+
+                  sites.sort((a, b) => {
+                      const dateA = a.booking_date || '';
+                      const dateB = b.booking_date || '';
+                      return dateA.localeCompare(dateB);
+                  });
+                  sites.forEach(site => {
+                      const formattedDate = site.formatted_date || 'No date';
+                      const nights = site.num_nights || 1;
+                      emailContent += `
+                          <tr>
+                              <td>${formattedDate}</td>
+                              <td>${nights} night${nights !== 1 ? 's' : ''}</td>
+                              <td><a href="${site.booking_url}" class="book-link">Book Now</a></td>
+                          </tr>
+                      `;
+                  });
+
+                  emailContent += `
+                          </tbody>
+                      </table>
+                  `;
+                  });
+              }
+          });
+
+          emailContent += `
+              <p style="margin-top: 20px; color: #666; font-size: 11px; line-height: 1.4;">
+                  This is an automated notification from your Campground checker.
+                  Book quickly as availability changes frequently!
+              </p>
+          `;
+
+          document.getElementById('emailContent').innerHTML = emailContent;
+      }
+
+      updateDisplay();
+    </script>
+  </body>
+</html>
