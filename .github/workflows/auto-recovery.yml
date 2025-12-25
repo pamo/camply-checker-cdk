@@ -26,7 +26,7 @@ jobs:
           # Check for Runtime.InvalidEntrypoint errors in last 20 minutes
           ERRORS=$(aws logs filter-log-events \
             --log-group-name "/aws/lambda/CamplyStack-prod-LambdaFunction9233991D-ioXwYaVrK7uB" \
-            --start-time $(date -v-20M +%s)000 \
+            --start-time $(date -d '20 minutes ago' +%s)000 \
             --filter-pattern "Runtime.InvalidEntrypoint" \
             --query 'length(events)' \
             --output text)
@@ -70,24 +70,24 @@ jobs:
             exit 1
           fi
 
-     # - name: Send recovery notification
-     #   if: steps.check-failure.outputs.needs_recovery == 'true'
-     #   uses: dawidd6/action-send-mail@v3
-     #   with:
-     #     server_address: smtp.gmail.com
-     #     server_port: 587
-     #     username: ${{ secrets.EMAIL_USERNAME }}
-     #     password: ${{ secrets.EMAIL_PASSWORD }}
-     #     subject: "🔧 Camply Auto-Recovery Completed"
-     #     body: |
-     #       🚨 Your Camply system detected Docker architecture failures and automatically recovered!
-            
-      #      ✅ Docker cache cleared
-      #      ✅ Lambda function redeployed  
-     #       ✅ System verified working
-            
-     #       Recovery completed at: ${{ github.run_started_at }}
-            
-     #       Your campsite monitoring is now running normally again.
-     #     to: ${{ secrets.EMAIL_USERNAME }}
-     #     from: ${{ secrets.EMAIL_FROM_ADDRESS }}
+      - name: Send recovery notification
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🔧 Camply Auto-Recovery Completed"
+          body: |
+            🚨 Your Camply system detected Docker architecture failures and automatically recovered!
+              
+            ✅ Docker cache cleared
+            ✅ Lambda function redeployed  
+            ✅ System verified working
+              
+            Recovery completed at: ${{ github.run_started_at }}
+              
+            Your campsite monitoring is now running normally again.
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_FROM_ADDRESS }}
