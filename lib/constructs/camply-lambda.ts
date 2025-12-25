@@ -38,7 +38,7 @@ export class CamplyLambda extends Construct {
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
-        architecture: lambda.Architecture.ARM_64,
+        architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.minutes(3),
         memorySize: 256,
         description: `Camply checker function - deployed ${new Date().toISOString()}`,
