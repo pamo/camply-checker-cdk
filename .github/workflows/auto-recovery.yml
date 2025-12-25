@@ -24,16 +24,37 @@ jobs:
         id: check-failure
         run: |
           # Check for Runtime.InvalidEntrypoint errors in last 20 minutes
-          ERRORS=$(aws logs filter-log-events \
+          LOG_OUTPUT=$(aws logs filter-log-events \
             --log-group-name "/aws/lambda/CamplyStack-prod-LambdaFunction9233991D-ioXwYaVrK7uB" \
             --start-time $(date -d '20 minutes ago' +%s)000 \
             --filter-pattern "Runtime.InvalidEntrypoint" \
-            --query 'length(events)' \
+            --query 'events[*].[timestamp,message]' \
             --output text)
           
-          if [ "$ERRORS" != "0" ] && [ "$ERRORS" != "None" ]; then
+          ERRORS=$(echo "$LOG_OUTPUT" | wc -l)
+          
+          if [ -n "$LOG_OUTPUT" ] && [ "$ERRORS" -gt 0 ]; then
             echo "🚨 Architecture failure detected in last 20 minutes"
             echo "needs_recovery=true" >> $GITHUB_OUTPUT
+            
+            # Get the most recent error message
+            LATEST_ERROR=$(echo "$LOG_OUTPUT" | head -n 1)
+            TIMESTAMP=$(echo "$LATEST_ERROR" | awk '{print $1}')
+            MESSAGE=$(echo "$LATEST_ERROR" | cut -d' ' -f2-)
+            
+            # Convert timestamp to readable format
+            READABLE_TIME=$(date -d @$((TIMESTAMP/1000)) -u '+%Y-%m-%d %H:%M:%S UTC')
+            
+            # Save error details (use delimiter to handle multiline)
+            echo "error_time<<EOF" >> $GITHUB_OUTPUT
+            echo "$READABLE_TIME" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            echo "error_message<<EOF" >> $GITHUB_OUTPUT
+            echo "$MESSAGE" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            echo "error_count=$ERRORS" >> $GITHUB_OUTPUT
           else
             echo "✅ No architecture failures detected"
             echo "needs_recovery=false" >> $GITHUB_OUTPUT
@@ -70,6 +91,11 @@ jobs:
             exit 1
           fi
 
+      - name: Get timestamp
+        if: steps.check-failure.outputs.needs_recovery == 'true'
+        id: timestamp
+        run: echo "time=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+        
       - name: Send recovery notification
         if: steps.check-failure.outputs.needs_recovery == 'true'
         uses: dawidd6/action-send-mail@v3
@@ -81,13 +107,21 @@ jobs:
           subject: "🔧 Camply Auto-Recovery Completed"
           body: |
             🚨 Your Camply system detected Docker architecture failures and automatically recovered!
-              
-            ✅ Docker cache cleared
-            ✅ Lambda function redeployed  
-            ✅ System verified working
-              
-            Recovery completed at: ${{ github.run_started_at }}
-              
+            
+            📊 Failure Details:
+            - Error count: ${{ steps.check-failure.outputs.error_count }}
+            - First detected: ${{ steps.check-failure.outputs.error_time }}
+            
+            📝 Error Message:
+            ${{ steps.check-failure.outputs.error_message }}
+            
+            ✅ Recovery Actions:
+            - Docker cache cleared
+            - Lambda function redeployed
+            - System verified working
+            
+            Recovery completed at: ${{ steps.timestamp.outputs.time }}
+            
             Your campsite monitoring is now running normally again.
           to: ${{ secrets.EMAIL_USERNAME }}
           from: ${{ secrets.EMAIL_FROM_ADDRESS }}
