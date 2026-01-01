@@ -344,14 +344,30 @@ def generate_dashboard(all_sites):
 
             formatted_date = format_date_with_relative(site.get('booking_date')) if site.get('booking_date') else 'No date'
 
+            # Fix ReserveCalifornia URLs for dashboard
+            booking_url = site.get('booking_url', '#')
+            campground_id = site.get('campground_id')
+            if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
+                park_id_map = {
+                    766: 682,   # Steep Ravine
+                    590: 682,   # Steep Ravine Campgrounds  
+                    2009: 682,  # Pantoll Campground
+                    589: 682,   # Frank Valley Horse Campground
+                    2008: 682,  # Bootjack Campground
+                    518: 625    # Julia Pfeiffer Burns
+                }
+                park_id = park_id_map.get(campground_id)
+                if park_id:
+                    booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+
             sites_data.append({
                 'name': site.get('facility_name', 'Unknown'),
                 'site_name': site.get('campsite_site_name', 'Unknown'),
                 'booking_date': site.get('booking_date'),
                 'formatted_date': formatted_date,
-                'url': site.get('booking_url', '#'),
+                'url': booking_url,
                 'recreation_area': area,
-                'campground_id': site.get('campground_id')
+                'campground_id': campground_id
             })
 
         area_options = ''.join(f'<option value="{area}">{area}</option>' for area in sorted(areas))
@@ -426,7 +442,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                 th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }}
                 th {{ background-color: #f2f2f2; font-weight: bold; }}
                 tr:nth-child(even) {{ background-color: #f9f9f9; }}
-                .book-link {{ background-color: #4CAF50; color: #e8f5e8; padding: 6px 12px;
+                .book-link {{ background-color: #4CAF50; color: #e8f5e8 !important; padding: 6px 12px;
                             text-decoration: none; border-radius: 3px; display: inline-block; font-size: 12px; }}
                 .book-link:hover {{ background-color: #45a049; }}
                 .summary {{ background-color: #e8f5e8; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; }}
@@ -486,6 +502,20 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     formatted_date = format_date_with_relative(booking_date)
                     nights = site.get('num_nights', 1)
                     booking_url = site['booking_url']
+                    if 'ReserveCalifornia' in provider and site.get('campground_id'):
+                        # Format: https://reservecalifornia.com/park/{park_id}/{campground_id}
+                        campground_id = site['campground_id']
+                        park_id_map = {
+                            766: 682,   # Steep Ravine
+                            590: 682,   # Steep Ravine Campgrounds
+                            2009: 682,  # Pantoll Campground
+                            589: 682,   # Frank Valley Horse Campground
+                            2008: 682,  # Bootjack Campground
+                            518: 625    # Julia Pfeiffer Burns
+                        }
+                        park_id = park_id_map.get(campground_id)
+                        if park_id:
+                            booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
 
                     html_body += f"""
                         <tr>
@@ -525,10 +555,15 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
 
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(username, password)
-            server.send_message(msg, to_addrs=recipients)
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+                server.login(username, password)
+                server.send_message(msg, to_addrs=recipients)
+        else:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(username, password)
+                server.send_message(msg, to_addrs=recipients)
 
         logger.info(f"Notification sent for {len(sites)} sites")
 

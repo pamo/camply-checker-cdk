@@ -80,7 +80,7 @@
       .book-link,
       .filter-group button {
         background-color: #4caf50;
-        color: #e8f5e8;
+        color: #e8f5e8 !important;
         padding: 6px 12px;
         text-decoration: none;
         border-radius: 3px;
@@ -267,7 +267,7 @@
                           <tr>
                               <td>${formattedDate}</td>
                               <td>${nights} night${nights !== 1 ? 's' : ''}</td>
-                              <td><a href="${site.booking_url}" class="book-link">Book Now</a></td>
+                              <td><a href="${site.url}" class="book-link">Book Now</a></td>
                           </tr>
                       `;
                   });
