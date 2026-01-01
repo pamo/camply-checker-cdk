@@ -30,7 +30,8 @@ export class CamplyLambda extends Construct {
     if (shouldBundle) {
       this.function = new lambda.Function(this, 'Function', {
         runtime: lambda.Runtime.FROM_IMAGE,
-        code: lambda.Code.fromAssetImage('lambda', {
+        code: lambda.Code.fromAssetImage('.', {
+          file: 'lambda/Dockerfile',
           cmd: ['index.lambda_handler'],
           buildArgs: {
             CACHE_BUST: Date.now().toString(),
@@ -61,8 +62,10 @@ export class CamplyLambda extends Construct {
     } else {
       this.function = new lambda.Function(this, 'Function', {
         runtime: lambda.Runtime.PYTHON_3_11,
-        handler: 'index.lambda_handler',
-        code: lambda.Code.fromAsset('lambda'),
+        handler: 'lambda/index.lambda_handler',
+        code: lambda.Code.fromAsset('.', {
+          exclude: ['node_modules', 'dist', 'test', '.git', 'lambda/config'],
+        }),
         timeout: cdk.Duration.minutes(5),
         memorySize: 512,
         environment: {

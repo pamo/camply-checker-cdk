@@ -32,7 +32,7 @@ describe('CamplyStack', () => {
 
   test('Lambda Function Created with Correct Properties', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
-      Handler: 'index.lambda_handler',
+      Handler: 'lambda/index.lambda_handler',
       Runtime: 'python3.11',
       Timeout: 300,
       MemorySize: 512,

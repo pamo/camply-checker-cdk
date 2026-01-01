@@ -4,10 +4,76 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import boto3
+import re
 
 # Set up logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+def load_campground_config():
+    """Load campground configuration from JSON file"""
+    try:
+        config_path = '/var/task/config/campgrounds.json'
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        # Filter only enabled campgrounds and sort by priority
+        enabled_campgrounds = [c for c in config['campgrounds'] if c.get('enabled', True)]
+        enabled_campgrounds.sort(key=lambda x: x.get('priority', 999))
+        
+        logger.info(f"Loaded {len(enabled_campgrounds)} enabled campgrounds")
+        return enabled_campgrounds
+    except Exception as e:
+        logger.error(f"Failed to load campground config: {str(e)}")
+        # Fallback to hardcoded config
+        return [
+            {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True},
+            {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True},
+            {'id': 233359, 'name': 'Point Reyes National Seashore', 'provider': 'RecreationDotGov', 'priority': 3, 'enabled': True, 'filter': 'hike-in'},
+            {'id': 252037, 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov', 'priority': 4, 'enabled': True}
+        ]
+
+def group_campgrounds_by_provider(campgrounds_config):
+    """Group campgrounds by provider for camply search"""
+    providers = {}
+    for campground in campgrounds_config:
+        provider = campground['provider']
+        if provider not in providers:
+            providers[provider] = []
+        providers[provider].append(campground['id'])
+    
+    return [{'provider': provider, 'campgrounds': ids} for provider, ids in providers.items()]
+
+def get_campground_metadata(campground_id, campgrounds_config):
+    """Get metadata for a specific campground ID"""
+    for campground in campgrounds_config:
+        if campground['id'] == campground_id:
+            return campground
+    return None
+
+def extract_site_name(site_name, campground_config):
+    """Extract and format site name based on campground configuration"""
+    if not site_name or not campground_config:
+        return site_name or 'Unknown'
+    
+    display_format = campground_config.get('display_format', 'simple')
+    
+    if display_format == 'site_and_loop':
+        # Handle "Site: 010, Loop: Sky" format (Point Reyes)
+        site_match = re.search(r'Site:\s*(\w+)', site_name, re.IGNORECASE)
+        loop_match = re.search(r'Loop:\s*(\w+)', site_name, re.IGNORECASE)
+        
+        if site_match and loop_match:
+            return f"Site {site_match.group(1)}, Loop {loop_match.group(1)}"
+        elif site_match:
+            return f"Site {site_match.group(1)}"
+        
+        # Handle "Cabin (5 People) #CB06" format (Steep Ravine)
+        cabin_match = re.search(r'Cabin.*?#(\w+)', site_name, re.IGNORECASE)
+        if cabin_match:
+            return f"Cabin {cabin_match.group(1)}"
+    
+    return site_name
 
 def lambda_handler(event, context):
     """
@@ -82,14 +148,9 @@ def lambda_handler(event, context):
 
         search_window = SearchWindow(start_date=start_date, end_date=end_date)
 
-        # Simplified campground configuration
-        campgrounds = [
-            # Recreation.gov campgrounds
-            {'provider': 'RecreationDotGov', 'campgrounds': [252037, 233359]},  # Sardine Peak Lookout, Point Reyes
-
-            # ReserveCalifornia campgrounds
-            {'provider': 'ReserveCalifornia', 'campgrounds': [766, 590, 2009, 589, 2008, 518]},  # Your campgrounds
-        ]
+        # Load campground configuration
+        campgrounds_config = load_campground_config()
+        campgrounds = group_campgrounds_by_provider(campgrounds_config)
 
         all_results = []
         all_changed_results = []
@@ -119,28 +180,39 @@ def lambda_handler(event, context):
                 if available_sites:
                     logger.info(f"Found {len(available_sites)} available sites for {config['provider']}")
 
-                    # Convert to serializable format and filter Point Reyes to hike-in only
+                    # Convert to serializable format and add metadata
                     sites_data = []
                     for site in available_sites:
+                        # Get campground metadata
+                        campground_meta = get_campground_metadata(getattr(site, 'campground_id', None), campgrounds_config)
+                        
                         # Filter Point Reyes to only include hike-in campgrounds
                         if site.facility_name == "Point Reyes National Seashore Campground":
-                            # Only include sites with HIKE TO type (excludes boat-in sites)
                             if site.campsite_type and "HIKE TO" in site.campsite_type:
                                 pass  # Include this site
                             else:
                                 continue  # Skip boat-in and other types
 
+                        # Extract and format site name
+                        formatted_site_name = extract_site_name(site.campsite_site_name, campground_meta)
+
                         sites_data.append({
                             'campsite_id': site.campsite_id,
                             'booking_date': site.booking_date.isoformat() if site.booking_date else None,
-                            'campsite_site_name': site.campsite_site_name,
+                            'campsite_site_name': formatted_site_name,
                             'facility_name': site.facility_name,
+                            'campground_name': campground_meta['name'] if campground_meta else site.facility_name,
+                            'campsite_use_type': getattr(site, 'campsite_use_type', None),
+                            'campsite_loop_name': getattr(site, 'campsite_loop_name', None),
                             'booking_url': site.booking_url,
                             'recreation_area': site.recreation_area,
                             'campsite_type': site.campsite_type,
-                            'campground_id': getattr(site, 'campground_id', None)  # Add campground ID for sorting
+                            'campground_id': getattr(site, 'campground_id', None),
+                            'priority': campground_meta['priority'] if campground_meta else 999
                         })
 
+                    # Sort by priority (lower numbers first)
+                    sites_data.sort(key=lambda x: x.get('priority', 999))
                     all_results.extend(sites_data)
 
                     # Check if results have changed for this provider
@@ -485,6 +557,8 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                 <table>
                     <thead>
                         <tr>
+                            <th>Campground</th>
+                            <th>Site Name</th>
                             <th>Available Date</th>
                             <th>Nights</th>
                             <th>Book Now</th>
@@ -493,14 +567,16 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     <tbody>
                 """
 
-                # Sort sites by date
-                facility_sites.sort(key=lambda x: x['booking_date'])
+                # Sort sites by priority first, then by date
+                facility_sites.sort(key=lambda x: (x.get('priority', 999), x['booking_date']))
 
                 for site in facility_sites:
                     # Format date with relative time
                     booking_date = site['booking_date'].split('T')[0] if 'T' in site['booking_date'] else site['booking_date'].split(' ')[0]
                     formatted_date = format_date_with_relative(booking_date)
                     nights = site.get('num_nights', 1)
+                    campground_name = site.get('campground_name', site.get('facility_name', 'Unknown'))
+                    site_name = site.get('campsite_site_name', 'Unknown')
                     booking_url = site['booking_url']
                     if 'ReserveCalifornia' in provider and site.get('campground_id'):
                         # Format: https://reservecalifornia.com/park/{park_id}/{campground_id}
@@ -519,6 +595,8 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
 
                     html_body += f"""
                         <tr>
+                            <td>{campground_name}</td>
+                            <td>{site_name}</td>
                             <td>{formatted_date}</td>
                             <td>{nights} night{'s' if nights != 1 else ''}</td>
                             <td><a href="{booking_url}" class="book-link">Book Now</a></td>

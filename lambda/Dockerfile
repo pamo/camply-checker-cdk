@@ -10,14 +10,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY lambda/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install AWS Lambda Runtime Interface Client
 RUN pip install awslambdaric
 
-# Copy function code
-COPY . .
+# Copy function code and config
+COPY lambda/ .
+COPY config/ ./config/
 
 # Set the Lambda runtime
 ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]

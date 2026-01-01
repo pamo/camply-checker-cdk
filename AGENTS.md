@@ -44,6 +44,7 @@ EventBridge Rule → Lambda Function → Email Notifications
 
 ## Configuration
 
+### Environment Variables
 Create a `.env` file in the root directory:
 
 ```bash
@@ -59,6 +60,19 @@ EMAIL_SUBJECT_LINE="⛺️ Camply Update ⛺️"
 # Search Configuration
 SEARCH_WINDOW_DAYS="90"
 ```
+
+### Campground Configuration
+Campgrounds are configured in `config/campgrounds.json`. This file controls:
+- Which campgrounds to monitor
+- Priority ordering in emails (Steep Ravine sites appear first)
+- Site name formatting and display
+- Enable/disable individual campgrounds
+
+See `config/README.md` for detailed configuration options.
+
+To modify campgrounds:
+1. Edit `config/campgrounds.json`
+2. Deploy with `npm run deploy:prod`
 
 ### Email Setup Options
 

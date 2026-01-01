@@ -1,0 +1,69 @@
+{
+  "campgrounds": [
+    {
+      "id": 766,
+      "name": "Steep Ravine",
+      "provider": "ReserveCalifornia",
+      "priority": 1,
+      "enabled": true,
+      "display_format": "site_and_loop"
+    },
+    {
+      "id": 590,
+      "name": "Steep Ravine Campgrounds",
+      "provider": "ReserveCalifornia", 
+      "priority": 2,
+      "enabled": true,
+      "display_format": "site_and_loop"
+    },
+    {
+      "id": 233359,
+      "name": "Point Reyes National Seashore",
+      "provider": "RecreationDotGov",
+      "priority": 3,
+      "enabled": true,
+      "display_format": "site_and_loop",
+      "filter": "hike-in"
+    },
+    {
+      "id": 252037,
+      "name": "Sardine Peak Lookout",
+      "provider": "RecreationDotGov",
+      "priority": 4,
+      "enabled": true,
+      "display_format": "simple"
+    },
+    {
+      "id": 2009,
+      "name": "Pantoll Campground",
+      "provider": "ReserveCalifornia",
+      "priority": 5,
+      "enabled": true,
+      "display_format": "simple"
+    },
+    {
+      "id": 589,
+      "name": "Frank Valley Horse Campground",
+      "provider": "ReserveCalifornia",
+      "priority": 6,
+      "enabled": false,
+      "display_format": "simple"
+    },
+    {
+      "id": 2008,
+      "name": "Bootjack Campground",
+      "provider": "ReserveCalifornia",
+      "priority": 7,
+      "enabled": true,
+      "display_format": "simple"
+    },
+    {
+      "id": 518,
+      "name": "Julia Pfeiffer Burns",
+      "provider": "ReserveCalifornia",
+      "priority": 8,
+      "enabled": true,
+      "display_format": "simple"
+    }
+  ]
+}
