@@ -215,11 +215,7 @@ def lambda_handler(event, context):
                     sites_data.sort(key=lambda x: x.get('priority', 999))
                     all_results.extend(sites_data)
 
-                    # Check if results have changed for this provider
-                    if sites_data and should_send_notification(sites_data, config['provider']):
-                        all_changed_results.extend(sites_data)
-                    elif sites_data:
-                        logger.info(f"No changes in availability for {config['provider']}")
+                    all_changed_results.extend(sites_data)
                 else:
                     logger.info(f"No availability found for {config['provider']}")
 
@@ -229,7 +225,11 @@ def lambda_handler(event, context):
 
         # Send single notification with all changed results
         if all_changed_results:
-            send_notification(all_changed_results, "Multiple Providers")
+            # Check if combined results have changed
+            if should_send_notification(all_changed_results, "Combined"):
+                send_notification(all_changed_results, "Multiple Providers")
+            else:
+                logger.info("No changes in combined availability, skipping notification")
         else:
             logger.info("No changes in availability across all providers, skipping notification")
 
@@ -531,16 +531,14 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
             </div>
         """
 
-        # Add tables grouped by recreation area, with Steep Ravine campgrounds (IDs 766, 590) first
+        # Sort recreation areas by priority (lowest priority number of any site in that area)
         def sort_rec_areas(item):
             rec_area, facilities = item
-            # Check if any sites in this recreation area are from Steep Ravine campgrounds
+            min_priority = 999
             for facility_sites in facilities.values():
                 for site in facility_sites:
-                    campground_id = site.get('campground_id')
-                    if campground_id in [766, 590]:  # Steep Ravine campground IDs
-                        return "0"  # Sort first
-            return rec_area
+                    min_priority = min(min_priority, site.get('priority', 999))
+            return min_priority
 
         sorted_rec_areas = sorted(sites_by_rec_area.items(), key=sort_rec_areas)
 
@@ -578,9 +576,9 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     campground_name = site.get('campground_name', site.get('facility_name', 'Unknown'))
                     site_name = site.get('campsite_site_name', 'Unknown')
                     booking_url = site['booking_url']
-                    if 'ReserveCalifornia' in provider and site.get('campground_id'):
-                        # Format: https://reservecalifornia.com/park/{park_id}/{campground_id}
-                        campground_id = site['campground_id']
+
+                    campground_id = site.get('campground_id')
+                    if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
                         park_id_map = {
                             766: 682,   # Steep Ravine
                             590: 682,   # Steep Ravine Campgrounds
