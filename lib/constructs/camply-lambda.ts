@@ -57,6 +57,7 @@ export class CamplyLambda extends Construct {
           EMAIL_FROM_ADDRESS: props.emailFromAddress,
           LOG_LEVEL: 'INFO',
           DEPLOYMENT_TIMESTAMP: Date.now().toString(), // Force update
+          CONFIG_VERSION: '2.0',
         },
       });
     } else {
