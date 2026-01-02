@@ -12,7 +12,7 @@
     "format": "prettier --write '**/*.ts'",
     "synth": "npm run build && cdk synth -a 'node dist/bin/camply-checker.js'",
     "deploy:dev": "npm run build && cdk deploy GithubActionsStack -c env=dev --require-approval never -a 'node dist/bin/camply-checker.js' --verbose",
-    "deploy:prod": "./sync-config.sh && docker system prune -f && npm run build && cdk deploy --all -c env=prod --require-approval never -a 'node dist/bin/camply-checker.js' --verbose",
+    "deploy:prod": "docker system prune -f && npm run build && cdk deploy --all -c env=prod --require-approval never -a 'node dist/bin/camply-checker.js' --verbose",
     "diff": "npm run build && cdk diff -a 'node dist/bin/camply-checker.js'",
     "bootstrap": "npm run build && cdk bootstrap -a 'node dist/bin/camply-checker.js'"
   },
