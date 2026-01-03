@@ -75,5 +75,6 @@ jobs:
           EMAIL_SMTP_SERVER: ${{ secrets.EMAIL_SMTP_SERVER }}
           EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
           EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
+          EMAIL_SUBJECT_LINE: ${{ secrets.EMAIL_SUBJECT_LINE }}
           ALERT_EMAIL_ADDRESS: ${{ secrets.ALERT_EMAIL_ADDRESS }}
         run: npx cdk deploy CamplyStack-prod --require-approval never -c env=prod
