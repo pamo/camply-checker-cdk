@@ -80,7 +80,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.2 - URL FIX & CABIN PRIORITY - 2026-01-02 ===")
+    logger.info("=== CAMPLY CHECKER v3.3 - FACILITY NAME URL FIX - 2026-01-02 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -424,18 +424,36 @@ def generate_dashboard(all_sites):
             # Fix ReserveCalifornia URLs for dashboard
             booking_url = site.get('booking_url', '#')
             campground_id = site.get('campground_id')
-            if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
-                park_id_map = {
-                    766: 682,   # Steep Ravine Cabins
-                    590: 682,   # Steep Ravine Campsites  
-                    2009: 682,  # Pantoll Campground
-                    589: 682,   # Frank Valley Horse Campground
-                    2008: 682,  # Bootjack Campground
-                    518: 661    # Julia Pfeiffer Burns
-                }
-                park_id = park_id_map.get(campground_id)
-                if park_id:
-                    booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+            facility_name = site.get('facility_name', '')
+            
+            # Fix URLs based on facility name or campground_id
+            if (campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]) or \
+               ('S Rav Camp Area' in facility_name) or ('Steep Ravine' in facility_name):
+                if 'S Rav Camp Area' in facility_name or campground_id == 590:
+                    # Steep Ravine Campsites
+                    booking_url = "https://reservecalifornia.com/park/682/590"
+                    campground_id = 590
+                elif 'Steep Ravine' in facility_name or campground_id == 766:
+                    # Steep Ravine Cabins  
+                    booking_url = "https://reservecalifornia.com/park/682/766"
+                    campground_id = 766
+                elif campground_id:
+                    park_id_map = {
+                        2009: 682,  # Pantoll Campground
+                        589: 682,   # Frank Valley Horse Campground
+                        2008: 682,  # Bootjack Campground
+                        518: 661    # Julia Pfeiffer Burns
+                    }
+                    park_id = park_id_map.get(campground_id)
+                    if park_id:
+                        booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+
+            # Set priority based on facility name for Steep Ravine
+            priority = site.get('priority', 999)
+            if 'Steep Ravine' in facility_name and 'Camp Area' not in facility_name:
+                priority = 1  # Cabins first
+            elif 'S Rav Camp Area' in facility_name:
+                priority = 2  # Campsites second
 
             sites_data.append({
                 'name': site.get('facility_name', 'Unknown'),
@@ -446,7 +464,7 @@ def generate_dashboard(all_sites):
                 'url': booking_url,
                 'recreation_area': area,
                 'campground_id': campground_id,
-                'priority': site.get('priority', 999),
+                'priority': priority,
                 'num_nights': site.get('num_nights', 1)
             })
 
@@ -586,18 +604,27 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     booking_url = site['booking_url']
 
                     campground_id = site.get('campground_id')
-                    if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
-                        park_id_map = {
-                            766: 682,   # Steep Ravine Cabins
-                            590: 682,   # Steep Ravine Campsites  
-                            2009: 682,  # Pantoll Campground
-                            589: 682,   # Frank Valley Horse Campground
-                            2008: 682,  # Bootjack Campground
-                            518: 661    # Julia Pfeiffer Burns
-                        }
-                        park_id = park_id_map.get(campground_id)
-                        if park_id:
-                            booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+                    facility_name = site.get('name', '')
+                    
+                    # Fix URLs based on facility name or campground_id
+                    if (campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]) or \
+                       ('S Rav Camp Area' in facility_name) or ('Steep Ravine' in facility_name):
+                        if 'S Rav Camp Area' in facility_name or campground_id == 590:
+                            # Steep Ravine Campsites
+                            booking_url = "https://reservecalifornia.com/park/682/590"
+                        elif 'Steep Ravine' in facility_name or campground_id == 766:
+                            # Steep Ravine Cabins  
+                            booking_url = "https://reservecalifornia.com/park/682/766"
+                        elif campground_id:
+                            park_id_map = {
+                                2009: 682,  # Pantoll Campground
+                                589: 682,   # Frank Valley Horse Campground
+                                2008: 682,  # Bootjack Campground
+                                518: 661    # Julia Pfeiffer Burns
+                            }
+                            park_id = park_id_map.get(campground_id)
+                            if park_id:
+                                booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
 
                     html_body += f"""
                         <tr>
