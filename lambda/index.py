@@ -45,6 +45,88 @@ def group_campgrounds_by_provider(campgrounds_config):
     return [{'provider': provider, 'campgrounds': ids} for provider, ids in providers.items()]
 
 def get_campground_metadata(campground_id, campgrounds_config):
+    """
+    Get campground metadata by ID (legacy function for compatibility).
+    """
+    if not campgrounds_config or not campground_id:
+        return None
+        
+    for campground in campgrounds_config.get('campgrounds', []):
+        if campground.get('id') == campground_id:
+            return campground
+            
+    return None
+    """
+    Find campground configuration by matching facility name patterns.
+    Returns campground info with URL and priority, or None if no match.
+    """
+    if not campgrounds_config or not facility_name:
+        return None
+        
+    for campground in campgrounds_config.get('campgrounds', []):
+        if campground.get('provider') != 'ReserveCalifornia':
+            continue
+            
+        # Check facility name patterns
+        patterns = campground.get('facility_name_patterns', [])
+        exclude_patterns = campground.get('exclude_patterns', [])
+        
+        # Must match at least one pattern
+        matches_pattern = any(pattern in facility_name for pattern in patterns)
+        
+        # Must not match any exclude patterns
+        matches_exclude = any(pattern in facility_name for pattern in exclude_patterns)
+        
+        if matches_pattern and not matches_exclude:
+            return campground
+            
+    return None
+
+def generate_booking_url(site, campgrounds_config):
+    """
+    Generate the correct booking URL for a site based on campground configuration.
+    """
+    original_url = site.get('booking_url', '#')
+    campground_id = site.get('campground_id')
+    facility_name = site.get('facility_name', '')
+    
+    # First try to match by campground_id
+    if campground_id and campgrounds_config:
+        for campground in campgrounds_config.get('campgrounds', []):
+            if campground.get('id') == campground_id and campground.get('provider') == 'ReserveCalifornia':
+                park_id = campground.get('park_id')
+                if park_id:
+                    return f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+    
+    # Fallback to facility name matching
+    campground_info = get_campground_info_by_facility_name(facility_name, campgrounds_config)
+    if campground_info:
+        park_id = campground_info.get('park_id')
+        campground_id = campground_info.get('id')
+        if park_id and campground_id:
+            return f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+    
+    return original_url
+
+def get_site_priority(site, campgrounds_config):
+    """
+    Get the priority for a site based on campground configuration.
+    """
+    campground_id = site.get('campground_id')
+    facility_name = site.get('facility_name', '')
+    
+    # First try to match by campground_id
+    if campground_id and campgrounds_config:
+        for campground in campgrounds_config.get('campgrounds', []):
+            if campground.get('id') == campground_id:
+                return campground.get('priority', 999)
+    
+    # Fallback to facility name matching
+    campground_info = get_campground_info_by_facility_name(facility_name, campgrounds_config)
+    if campground_info:
+        return campground_info.get('priority', 999)
+    
+    return 999
     """Get metadata for a specific campground ID"""
     for campground in campgrounds_config:
         if campground['id'] == campground_id:
@@ -80,7 +162,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.3 - FACILITY NAME URL FIX - 2026-01-02 ===")
+    logger.info("=== CAMPLY CHECKER v3.4 - CONFIGURABLE CAMPGROUNDS - 2026-01-02 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -421,39 +503,9 @@ def generate_dashboard(all_sites):
 
             formatted_date = format_date_with_relative(site.get('booking_date')) if site.get('booking_date') else 'No date'
 
-            # Fix ReserveCalifornia URLs for dashboard
-            booking_url = site.get('booking_url', '#')
-            campground_id = site.get('campground_id')
-            facility_name = site.get('facility_name', '')
-            
-            # Fix URLs based on facility name or campground_id
-            if (campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]) or \
-               ('S Rav Camp Area' in facility_name) or ('Steep Ravine' in facility_name):
-                if 'S Rav Camp Area' in facility_name or campground_id == 590:
-                    # Steep Ravine Campsites
-                    booking_url = "https://reservecalifornia.com/park/682/590"
-                    campground_id = 590
-                elif 'Steep Ravine' in facility_name or campground_id == 766:
-                    # Steep Ravine Cabins  
-                    booking_url = "https://reservecalifornia.com/park/682/766"
-                    campground_id = 766
-                elif campground_id:
-                    park_id_map = {
-                        2009: 682,  # Pantoll Campground
-                        589: 682,   # Frank Valley Horse Campground
-                        2008: 682,  # Bootjack Campground
-                        518: 661    # Julia Pfeiffer Burns
-                    }
-                    park_id = park_id_map.get(campground_id)
-                    if park_id:
-                        booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
-
-            # Set priority based on facility name for Steep Ravine
-            priority = site.get('priority', 999)
-            if 'Steep Ravine' in facility_name and 'Camp Area' not in facility_name:
-                priority = 1  # Cabins first
-            elif 'S Rav Camp Area' in facility_name:
-                priority = 2  # Campsites second
+            # Generate booking URL and priority using configuration
+            booking_url = generate_booking_url(site, campgrounds_config)
+            priority = get_site_priority(site, campgrounds_config)
 
             sites_data.append({
                 'name': site.get('facility_name', 'Unknown'),
@@ -463,7 +515,7 @@ def generate_dashboard(all_sites):
                 'formatted_date': formatted_date,
                 'url': booking_url,
                 'recreation_area': area,
-                'campground_id': campground_id,
+                'campground_id': site.get('campground_id'),
                 'priority': priority,
                 'num_nights': site.get('num_nights', 1)
             })
@@ -603,28 +655,8 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     site_name = site.get('campsite_site_name', 'Unknown')
                     booking_url = site['booking_url']
 
-                    campground_id = site.get('campground_id')
-                    facility_name = site.get('name', '')
-                    
-                    # Fix URLs based on facility name or campground_id
-                    if (campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]) or \
-                       ('S Rav Camp Area' in facility_name) or ('Steep Ravine' in facility_name):
-                        if 'S Rav Camp Area' in facility_name or campground_id == 590:
-                            # Steep Ravine Campsites
-                            booking_url = "https://reservecalifornia.com/park/682/590"
-                        elif 'Steep Ravine' in facility_name or campground_id == 766:
-                            # Steep Ravine Cabins  
-                            booking_url = "https://reservecalifornia.com/park/682/766"
-                        elif campground_id:
-                            park_id_map = {
-                                2009: 682,  # Pantoll Campground
-                                589: 682,   # Frank Valley Horse Campground
-                                2008: 682,  # Bootjack Campground
-                                518: 661    # Julia Pfeiffer Burns
-                            }
-                            park_id = park_id_map.get(campground_id)
-                            if park_id:
-                                booking_url = f"https://reservecalifornia.com/park/{park_id}/{campground_id}"
+                    # Generate booking URL using configuration
+                    booking_url = generate_booking_url(site, campgrounds_config)
 
                     html_body += f"""
                         <tr>

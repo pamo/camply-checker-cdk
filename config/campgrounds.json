@@ -6,7 +6,10 @@
       "provider": "ReserveCalifornia",
       "priority": 1,
       "enabled": true,
-      "display_format": "site_and_loop"
+      "display_format": "site_and_loop",
+      "park_id": 682,
+      "facility_name_patterns": ["Steep Ravine"],
+      "exclude_patterns": ["Camp Area"]
     },
     {
       "id": 590,
@@ -14,7 +17,9 @@
       "provider": "ReserveCalifornia", 
       "priority": 2,
       "enabled": true,
-      "display_format": "site_and_loop"
+      "display_format": "site_and_loop",
+      "park_id": 682,
+      "facility_name_patterns": ["S Rav Camp Area"]
     },
     {
       "id": 233359,
@@ -39,7 +44,8 @@
       "provider": "ReserveCalifornia",
       "priority": 5,
       "enabled": true,
-      "display_format": "simple"
+      "display_format": "simple",
+      "park_id": 682
     },
     {
       "id": 589,
@@ -47,7 +53,8 @@
       "provider": "ReserveCalifornia",
       "priority": 6,
       "enabled": false,
-      "display_format": "simple"
+      "display_format": "simple",
+      "park_id": 682
     },
     {
       "id": 2008,
@@ -55,7 +62,8 @@
       "provider": "ReserveCalifornia",
       "priority": 7,
       "enabled": true,
-      "display_format": "simple"
+      "display_format": "simple",
+      "park_id": 682
     },
     {
       "id": 518,
@@ -63,7 +71,8 @@
       "provider": "ReserveCalifornia",
       "priority": 8,
       "enabled": true,
-      "display_format": "simple"
+      "display_format": "simple",
+      "park_id": 661
     }
   ]
 }
