@@ -25,7 +25,7 @@ export class CamplyLambda extends Construct {
     super(scope, id);
 
     // Skip bundling during tests to avoid Docker dependency issues
-    const shouldBundle = false; // Force non-Docker deployment
+    const shouldBundle = process.env.NODE_ENV !== 'test' && !process.env.CDK_DISABLE_BUNDLING;
 
     if (shouldBundle) {
       this.function = new lambda.Function(this, 'Function', {
