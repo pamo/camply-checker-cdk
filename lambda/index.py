@@ -79,6 +79,9 @@ def lambda_handler(event, context):
     """
     Simplified Lambda handler for campground checking
     """
+    # Version marker for deployment verification
+    logger.info("=== CAMPLY CHECKER v3.1 - DEDUPLICATION FIX - 2026-01-02 ===")
+    
     try:
         # Set up writable directories for camply BEFORE importing
         import tempfile
