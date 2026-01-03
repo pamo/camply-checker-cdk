@@ -440,11 +440,14 @@ def generate_dashboard(all_sites):
             sites_data.append({
                 'name': site.get('facility_name', 'Unknown'),
                 'site_name': site.get('campsite_site_name', 'Unknown'),
+                'campground_name': site.get('campground_name', site.get('facility_name', 'Unknown')),
                 'booking_date': site.get('booking_date'),
                 'formatted_date': formatted_date,
                 'url': booking_url,
                 'recreation_area': area,
-                'campground_id': campground_id
+                'campground_id': campground_id,
+                'priority': site.get('priority', 999),
+                'num_nights': site.get('num_nights', 1)
             })
 
         area_options = ''.join(f'<option value="{area}">{area}</option>' for area in sorted(areas))

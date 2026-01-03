@@ -247,6 +247,8 @@
                       <table>
                           <thead>
                               <tr>
+                                  <th>Campground</th>
+                                  <th>Site Name</th>
                                   <th>Available Date</th>
                                   <th>Nights</th>
                                   <th>Book Now</th>
@@ -256,6 +258,12 @@
                   `;
 
                   sites.sort((a, b) => {
+                      // Sort by priority first, then by date
+                      const priorityA = a.priority || 999;
+                      const priorityB = b.priority || 999;
+                      if (priorityA !== priorityB) {
+                          return priorityA - priorityB;
+                      }
                       const dateA = a.booking_date || '';
                       const dateB = b.booking_date || '';
                       return dateA.localeCompare(dateB);
@@ -263,8 +271,12 @@
                   sites.forEach(site => {
                       const formattedDate = site.formatted_date || 'No date';
                       const nights = site.num_nights || 1;
+                      const campgroundName = site.campground_name || site.name || 'Unknown';
+                      const siteName = site.site_name || 'Unknown';
                       emailContent += `
                           <tr>
+                              <td>${campgroundName}</td>
+                              <td>${siteName}</td>
                               <td>${formattedDate}</td>
                               <td>${nights} night${nights !== 1 ? 's' : ''}</td>
                               <td><a href="${site.url}" class="book-link">Book Now</a></td>
