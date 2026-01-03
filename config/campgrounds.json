@@ -2,7 +2,7 @@
   "campgrounds": [
     {
       "id": 766,
-      "name": "Steep Ravine",
+      "name": "Steep Ravine Cabins",
       "provider": "ReserveCalifornia",
       "priority": 1,
       "enabled": true,
@@ -10,7 +10,7 @@
     },
     {
       "id": 590,
-      "name": "Steep Ravine Campgrounds",
+      "name": "Steep Ravine Campsites",
       "provider": "ReserveCalifornia", 
       "priority": 2,
       "enabled": true,

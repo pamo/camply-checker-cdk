@@ -80,7 +80,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.1 - DEDUPLICATION FIX - 2026-01-02 ===")
+    logger.info("=== CAMPLY CHECKER v3.2 - URL FIX & CABIN PRIORITY - 2026-01-02 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -426,12 +426,12 @@ def generate_dashboard(all_sites):
             campground_id = site.get('campground_id')
             if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
                 park_id_map = {
-                    766: 682,   # Steep Ravine
-                    590: 682,   # Steep Ravine Campgrounds  
+                    766: 682,   # Steep Ravine Cabins
+                    590: 682,   # Steep Ravine Campsites  
                     2009: 682,  # Pantoll Campground
                     589: 682,   # Frank Valley Horse Campground
                     2008: 682,  # Bootjack Campground
-                    518: 625    # Julia Pfeiffer Burns
+                    518: 661    # Julia Pfeiffer Burns
                 }
                 park_id = park_id_map.get(campground_id)
                 if park_id:
@@ -588,12 +588,12 @@ def send_notification(sites: List[Dict[str, Any]], provider: str):
                     campground_id = site.get('campground_id')
                     if campground_id and campground_id in [766, 590, 2009, 589, 2008, 518]:
                         park_id_map = {
-                            766: 682,   # Steep Ravine
-                            590: 682,   # Steep Ravine Campgrounds
+                            766: 682,   # Steep Ravine Cabins
+                            590: 682,   # Steep Ravine Campsites  
                             2009: 682,  # Pantoll Campground
                             589: 682,   # Frank Valley Horse Campground
                             2008: 682,  # Bootjack Campground
-                            518: 625    # Julia Pfeiffer Burns
+                            518: 661    # Julia Pfeiffer Burns
                         }
                         park_id = park_id_map.get(campground_id)
                         if park_id:
