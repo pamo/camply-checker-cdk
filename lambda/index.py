@@ -216,7 +216,12 @@ def lambda_handler(event, context):
                     sites_data.sort(key=lambda x: x.get('priority', 999))
                     all_results.extend(sites_data)
 
-                    all_changed_results.extend(sites_data)
+                    # Only add to changed results if there are actual changes
+                    if should_send_notification(sites_data, config['provider']):
+                        all_changed_results.extend(sites_data)
+                        logger.info(f"Changes detected for {config['provider']}, added {len(sites_data)} sites")
+                    else:
+                        logger.info(f"No changes for {config['provider']}, skipping notification")
                 else:
                     logger.info(f"No availability found for {config['provider']}")
 
@@ -226,11 +231,7 @@ def lambda_handler(event, context):
 
         # Send single notification with all changed results
         if all_changed_results:
-            # Check if combined results have changed
-            if should_send_notification(all_changed_results, "Combined"):
-                send_notification(all_changed_results, "Multiple Providers")
-            else:
-                logger.info("No changes in combined availability, skipping notification")
+            send_notification(all_changed_results, "Multiple Providers")
         else:
             logger.info("No changes in availability across all providers, skipping notification")
 
