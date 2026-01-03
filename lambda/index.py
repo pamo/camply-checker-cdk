@@ -140,6 +140,7 @@ def lambda_handler(event, context):
         from camply.search import SearchRecreationDotGov, SearchReserveCalifornia
 
         logger.info("Starting campsite availability check")
+        logger.info(f"Config version: {os.environ.get('CONFIG_VERSION', 'unknown')}")
 
         # Configuration
         search_window_days = int(os.environ.get('SEARCH_WINDOW_DAYS', '14'))

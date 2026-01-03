@@ -25,7 +25,7 @@ export class CamplyLambda extends Construct {
     super(scope, id);
 
     // Skip bundling during tests to avoid Docker dependency issues
-    const shouldBundle = process.env.NODE_ENV !== 'test' && !process.env.CDK_DISABLE_BUNDLING;
+    const shouldBundle = false; // Force non-Docker deployment
 
     if (shouldBundle) {
       this.function = new lambda.Function(this, 'Function', {
@@ -36,13 +36,14 @@ export class CamplyLambda extends Construct {
           buildArgs: {
             CACHE_BUST: Date.now().toString(),
             FORCE_REBUILD: Math.random().toString(36),
+            CODE_VERSION: '2.0.1', // Force rebuild
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
         architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.minutes(3),
         memorySize: 256,
-        description: `Camply checker function - deployed ${new Date().toISOString()}`,
+        description: `Camply checker function - deployed ${new Date().toISOString()} - v2.0`,
         environment: {
           CACHE_BUCKET_NAME: props.cacheBucket.bucketName,
           SEARCH_WINDOW_DAYS: props.searchWindowDays.toString(),
