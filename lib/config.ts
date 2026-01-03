@@ -20,7 +20,7 @@ export class Config {
     this.emailUsername = process.env.EMAIL_USERNAME || 'pamela.ocampo@gmail.com';
     this.emailPassword = process.env.EMAIL_PASSWORD || '';
     this.emailSmtpServer = process.env.EMAIL_SMTP_SERVER || 'smtp.gmail.com';
-    this.emailSmtpPort = process.env.EMAIL_SMTP_PORT || '465';
+    this.emailSmtpPort = process.env.EMAIL_SMTP_PORT || '587';
     this.emailFromAddress = process.env.EMAIL_FROM_ADDRESS || 'pamela.ocampo@gmail.com';
     this.emailSubjectLine = process.env.EMAIL_SUBJECT_LINE || 'Camply Notification';
     this.alertEmailAddress = process.env.ALERT_EMAIL_ADDRESS || 'pamela.ocampo@gmail.com';
