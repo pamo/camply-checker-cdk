@@ -162,7 +162,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.4 - CONFIGURABLE CAMPGROUNDS - 2026-01-02 ===")
+    logger.info("=== CAMPLY CHECKER v3.5 - EMAIL FIX - 2026-01-03 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -316,7 +316,7 @@ def lambda_handler(event, context):
 
         # Send single notification with all changed results
         if all_changed_results:
-            send_notification(all_changed_results, "Multiple Providers")
+            send_notification(all_changed_results, "Multiple Providers", campgrounds_config)
         else:
             logger.info("No changes in availability across all providers, skipping notification")
 
@@ -547,7 +547,7 @@ def generate_dashboard(all_sites):
     except Exception as e:
         logger.error(f'Failed to generate dashboard: {str(e)}')
 
-def send_notification(sites: List[Dict[str, Any]], provider: str):
+def send_notification(sites: List[Dict[str, Any]], provider: str, campgrounds_config: Dict[str, Any]):
     """
     Send email notification for available campsites
     """
