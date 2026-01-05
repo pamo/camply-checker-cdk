@@ -192,7 +192,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.8 - BOOKING URL FIX - 2026-01-04 ===")
+    logger.info("=== CAMPLY CHECKER v3.9 - TIMEZONE FIX - 2026-01-04 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -379,6 +379,7 @@ def format_date_with_relative(date_str: str) -> str:
     """
     try:
         from datetime import datetime, timedelta
+        import pytz
 
         # Parse the date
         if 'T' in date_str:
@@ -393,8 +394,9 @@ def format_date_with_relative(date_str: str) -> str:
 
         formatted_date = date_obj.strftime(f'%a, %b {date_obj.day}{day_suffix}, %Y')
 
-        # Calculate relative time
-        today = datetime.now().date()
+        # Calculate relative time using Pacific timezone
+        pacific_tz = pytz.timezone('US/Pacific')
+        today = datetime.now(pacific_tz).date()
         days_diff = (date_obj.date() - today).days
 
         if days_diff == 0:

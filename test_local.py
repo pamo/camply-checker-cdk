@@ -44,6 +44,59 @@ def test_function_definitions():
         print(f"❌ Function definition test failed: {e}")
         return False
 
+def test_date_formatting():
+    """Test date formatting with correct timezone"""
+    try:
+        from index import format_date_with_relative
+        from datetime import datetime, timedelta
+        import pytz
+        
+        # Test with tomorrow's date
+        pacific_tz = pytz.timezone('US/Pacific')
+        today = datetime.now(pacific_tz).date()
+        tomorrow = today + timedelta(days=1)
+        tomorrow_str = tomorrow.isoformat()
+        
+        formatted = format_date_with_relative(tomorrow_str)
+        print(f"Tomorrow's date formatted: {formatted}")
+        
+        if "tomorrow" in formatted:
+            print("✅ Date formatting uses correct timezone")
+            return True
+        else:
+            print("❌ Date formatting timezone issue")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Date formatting test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+        from datetime import datetime
+        import pytz
+        
+        # Test with tomorrow's date
+        pacific_tz = pytz.timezone('US/Pacific')
+        tomorrow = datetime.now(pacific_tz).date()
+        tomorrow = tomorrow.replace(day=tomorrow.day + 1)
+        tomorrow_str = tomorrow.isoformat()
+        
+        formatted = format_date_with_relative(tomorrow_str)
+        print(f"Tomorrow's date formatted: {formatted}")
+        
+        if "tomorrow" in formatted:
+            print("✅ Date formatting uses correct timezone")
+            return True
+        else:
+            print("❌ Date formatting timezone issue")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Date formatting test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def test_booking_url_generation():
     """Test booking URL generation with real data"""
     try:
@@ -102,6 +155,7 @@ def main():
     tests = [
         test_function_definitions,
         test_config_loading,
+        test_date_formatting,
         test_booking_url_generation,
     ]
     
