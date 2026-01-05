@@ -14,7 +14,7 @@
     {
       "id": 590,
       "name": "Steep Ravine Campsites",
-      "provider": "ReserveCalifornia", 
+      "provider": "ReserveCalifornia",
       "priority": 2,
       "enabled": true,
       "display_format": "site_and_loop",
@@ -26,7 +26,7 @@
       "name": "Point Reyes National Seashore",
       "provider": "RecreationDotGov",
       "priority": 3,
-      "enabled": true,
+      "enabled": false,
       "display_format": "site_and_loop",
       "filter": "hike-in"
     },
@@ -43,7 +43,7 @@
       "name": "Pantoll Campground",
       "provider": "ReserveCalifornia",
       "priority": 5,
-      "enabled": true,
+      "enabled": false,
       "display_format": "simple",
       "park_id": 682
     },
@@ -61,7 +61,7 @@
       "name": "Bootjack Campground",
       "provider": "ReserveCalifornia",
       "priority": 7,
-      "enabled": true,
+      "enabled": false,
       "display_format": "simple",
       "park_id": 682
     },
@@ -70,7 +70,7 @@
       "name": "Julia Pfeiffer Burns",
       "provider": "ReserveCalifornia",
       "priority": 8,
-      "enabled": true,
+      "enabled": false,
       "display_format": "simple",
       "park_id": 661
     }
