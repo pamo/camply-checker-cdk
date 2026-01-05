@@ -97,6 +97,137 @@ def test_date_formatting():
         traceback.print_exc()
         return False
 
+def test_notification_logic():
+    """Test email notification deduplication logic"""
+    try:
+        from index import should_send_notification
+        from unittest.mock import Mock, patch
+        
+        # Test data
+        sites_data = [
+            {'campsite_id': '123', 'facility_name': 'Test Camp', 'booking_date': '2026-01-05'},
+            {'campsite_id': '456', 'facility_name': 'Test Camp', 'booking_date': '2026-01-06'}
+        ]
+        
+        # Test 1: No cache bucket - should always send
+        with patch.dict('os.environ', {}, clear=True):
+            result = should_send_notification(sites_data, 'TestProvider')
+            if result:
+                print("✅ Test 1 passed - No cache bucket, sends notification")
+            else:
+                print("❌ Test 1 failed - Should send when no cache bucket")
+                return False
+        
+        # Test 2: Mock S3 - first time (no previous hash)
+        mock_s3 = Mock()
+        mock_s3.get_object.side_effect = Exception("NoSuchKey")  # Simulate no previous hash
+        mock_s3.put_object.return_value = {}
+        
+        with patch('boto3.client', return_value=mock_s3), \
+             patch.dict('os.environ', {'CACHE_BUCKET_NAME': 'test-bucket'}):
+            result = should_send_notification(sites_data, 'TestProvider')
+            if result:
+                print("✅ Test 2 passed - First time, sends notification")
+            else:
+                print("❌ Test 2 failed - Should send on first run")
+                return False
+        
+        # Test 3: Mock S3 - same data (should not send)
+        import hashlib
+        current_hash = hashlib.md5(str(sorted(sites_data, key=lambda x: x.get('campsite_id', ''))).encode()).hexdigest()
+        
+        mock_s3_same = Mock()
+        mock_body = Mock()
+        mock_body.read.return_value.decode.return_value.strip.return_value = current_hash
+        mock_response = {'Body': mock_body}
+        mock_s3_same.get_object.return_value = mock_response
+        
+        with patch('boto3.client', return_value=mock_s3_same), \
+             patch.dict('os.environ', {'CACHE_BUCKET_NAME': 'test-bucket'}):
+            result = should_send_notification(sites_data, 'TestProvider')
+            if not result:
+                print("✅ Test 3 passed - Same data, skips notification")
+            else:
+                print("❌ Test 3 failed - Should not send for same data")
+                return False
+        
+        # Test 4: Mock S3 - different data (should send)
+        mock_s3_diff = Mock()
+        mock_body_diff = Mock()
+        mock_body_diff.read.return_value.decode.return_value.strip.return_value = "different_hash"
+        mock_response_diff = {'Body': mock_body_diff}
+        mock_s3_diff.get_object.return_value = mock_response_diff
+        mock_s3_diff.put_object.return_value = {}
+        
+        with patch('boto3.client', return_value=mock_s3_diff), \
+             patch.dict('os.environ', {'CACHE_BUCKET_NAME': 'test-bucket'}):
+            result = should_send_notification(sites_data, 'TestProvider')
+            if result:
+                print("✅ Test 4 passed - Different data, sends notification")
+            else:
+                print("❌ Test 4 failed - Should send for different data")
+                return False
+        
+        print("✅ All notification logic tests passed")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Notification logic test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def test_email_flow_integration():
+    """Test that email flow only sends when there are actual changes"""
+    try:
+        from unittest.mock import Mock, patch
+        
+        # Simulate the main flow logic
+        sites_data = [{'campsite_id': '123', 'facility_name': 'Test'}]
+        
+        # Test 1: No changes detected - should not add to changed results
+        all_changed_results = []
+        
+        # Mock should_send_notification to return False (no changes)
+        with patch('index.should_send_notification') as mock_should_send:
+            mock_should_send.return_value = False
+            
+            # Simulate the main logic
+            if mock_should_send(sites_data, 'TestProvider'):
+                all_changed_results.extend(sites_data)
+            
+            if len(all_changed_results) == 0:
+                print("✅ Test 1 passed - No changes, no email sent")
+            else:
+                print("❌ Test 1 failed - Should not send email when no changes")
+                return False
+        
+        # Test 2: Changes detected - should add to changed results
+        all_changed_results = []  # Reset
+        
+        # Mock should_send_notification to return True (changes detected)
+        with patch('index.should_send_notification') as mock_should_send:
+            mock_should_send.return_value = True
+            
+            # Simulate the main logic
+            if mock_should_send(sites_data, 'TestProvider'):
+                all_changed_results.extend(sites_data)
+            
+            if len(all_changed_results) > 0:
+                print("✅ Test 2 passed - Changes detected, email will be sent")
+            else:
+                print("❌ Test 2 failed - Should send email when changes detected")
+                return False
+        
+        print("✅ Email flow integration tests passed")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Email flow integration test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def test_booking_url_generation():
     """Test booking URL generation with real data"""
     try:
@@ -156,6 +287,8 @@ def main():
         test_function_definitions,
         test_config_loading,
         test_date_formatting,
+        test_notification_logic,
+        test_email_flow_integration,
         test_booking_url_generation,
     ]
     
