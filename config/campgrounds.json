@@ -8,7 +8,7 @@
       "enabled": true,
       "display_format": "site_and_loop",
       "park_id": 682,
-      "facility_name_patterns": ["Steep Ravine"],
+      "facility_name_patterns": ["Steep Ravine", "S Rav Cabin"],
       "exclude_patterns": ["Camp Area"]
     },
     {

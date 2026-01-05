@@ -13,9 +13,24 @@ logger.setLevel(logging.INFO)
 def load_campground_config():
     """Load campground configuration from JSON file"""
     try:
-        config_path = '/var/task/config/campgrounds.json'
-        with open(config_path, 'r') as f:
-            config = json.load(f)
+        # Try Lambda path first, then local path for testing
+        config_paths = [
+            '/var/task/config/campgrounds.json',  # Lambda environment
+            './config/campgrounds.json',          # Local testing
+            'config/campgrounds.json'             # Alternative local path
+        ]
+        
+        config = None
+        for config_path in config_paths:
+            try:
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                break
+            except FileNotFoundError:
+                continue
+        
+        if not config:
+            raise FileNotFoundError("Config file not found in any expected location")
         
         # Filter only enabled campgrounds and sort by priority
         enabled_campgrounds = [c for c in config['campgrounds'] if c.get('enabled', True)]
