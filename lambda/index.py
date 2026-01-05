@@ -32,8 +32,8 @@ def load_campground_config():
         # Fallback to hardcoded config
         return {
             'campgrounds': [
-                {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True},
-                {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True},
+                {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True, 'park_id': 682, 'facility_name_patterns': ['S Rav Cabin', 'Steep Ravine']},
+                {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True, 'park_id': 682, 'facility_name_patterns': ['S Rav Camp', 'Steep Ravine']},
                 {'id': 233359, 'name': 'Point Reyes National Seashore', 'provider': 'RecreationDotGov', 'priority': 3, 'enabled': True, 'filter': 'hike-in'},
                 {'id': 252037, 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov', 'priority': 4, 'enabled': True}
             ]
@@ -140,8 +140,20 @@ def get_campground_info_by_facility_name(facility_name, campgrounds_config):
         return None
     
     for campground in campgrounds_config.get('campgrounds', []):
+        # Check exact facility_name match first
         if campground.get('facility_name') == facility_name:
             return campground
+            
+        # Check facility_name_patterns
+        patterns = campground.get('facility_name_patterns', [])
+        for pattern in patterns:
+            if pattern in facility_name:
+                return campground
+                
+        # Check if campground name matches
+        if campground.get('name') and campground['name'] in facility_name:
+            return campground
+            
     return None
 
 def get_campground_metadata(campground_id, campgrounds_config):
@@ -180,7 +192,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.7 - LIST OBJECT FIX - 2026-01-04 ===")
+    logger.info("=== CAMPLY CHECKER v3.8 - BOOKING URL FIX - 2026-01-04 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
