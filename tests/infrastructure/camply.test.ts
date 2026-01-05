@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import { CamplyStack, CamplyStackProps } from '../lib/stacks/camply-stack';
-import { Config } from '../lib/config';
+import { CamplyStack, CamplyStackProps } from '../../lib/stacks/camply-stack';
+import { Config } from '../../lib/config';
 
 describe('CamplyStack', () => {
   let app: cdk.App;

@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "watch": "tsc -w --project tsconfig.json",
-    "test": "jest",
+    "test": "jest --testPathPattern=tests/infrastructure",
+    "test:lambda": "python3 tests/run_tests.py",
+    "test:all": "npm test && npm run test:lambda",
     "cdk": "cdk",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write '**/*.ts'",
@@ -43,7 +45,7 @@
   "jest": {
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/test"
+      "<rootDir>/tests/infrastructure"
     ],
     "testMatch": [
       "**/*.test.ts"
@@ -52,7 +54,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "setupFiles": [
-      "<rootDir>/test/setup.ts"
+      "<rootDir>/tests/infrastructure/setup.ts"
     ]
   },
   "eslintConfig": {

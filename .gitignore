@@ -83,6 +83,7 @@ cdk.out
 
 # Testing artifacts
 test_env/
+tests/test_env/
 .pytest_cache/
 *_simplified.*
 digest.txt
