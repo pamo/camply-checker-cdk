@@ -127,8 +127,20 @@ def get_site_priority(site, campgrounds_config):
         return campground_info.get('priority', 999)
     
     return 999
+
+def get_campground_info_by_facility_name(facility_name, campgrounds_config):
+    """Get campground info by facility name"""
+    if not facility_name or not campgrounds_config:
+        return None
+    
+    for campground in campgrounds_config.get('campgrounds', []):
+        if campground.get('facility_name') == facility_name:
+            return campground
+    return None
+
+def get_campground_metadata(campground_id, campgrounds_config):
     """Get metadata for a specific campground ID"""
-    for campground in campgrounds_config:
+    for campground in campgrounds_config.get('campgrounds', []):
         if campground['id'] == campground_id:
             return campground
     return None
@@ -162,7 +174,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.5 - EMAIL FIX - 2026-01-03 ===")
+    logger.info("=== CAMPLY CHECKER v3.6 - COMPLETE EMAIL FIX - 2026-01-04 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -324,7 +336,7 @@ def lambda_handler(event, context):
         should_update_dashboard = bool(all_changed_results) or should_force_dashboard_update()
 
         if should_update_dashboard:
-            generate_dashboard(all_results)
+            generate_dashboard(all_results, campgrounds_config)
         else:
             logger.info("No changes detected, skipping dashboard update")
 
@@ -479,7 +491,7 @@ def get_template():
     return _template_cache
 
 
-def generate_dashboard(all_sites):
+def generate_dashboard(all_sites, campgrounds_config):
     """Generate and upload dashboard to S3 using template"""
     try:
         import boto3

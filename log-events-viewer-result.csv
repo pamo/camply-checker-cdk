@@ -1,0 +1,175 @@
+timestamp,message
+1767579810345,"START RequestId: 99d50aef-c5ac-43cf-9763-fa34e878aa07 Version: $LATEST
+"
+1767579810346,"[INFO]	2026-01-05T02:23:30.346Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	=== CAMPLY CHECKER v3.5 - EMAIL FIX - 2026-01-03 ===
+"
+1767579812625,"[INFO]	2026-01-05T02:23:32.624Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Starting campsite availability check
+"
+1767579812625,"[INFO]	2026-01-05T02:23:32.625Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Config version: 2.0
+"
+1767579812625,"[INFO]	2026-01-05T02:23:32.625Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Loaded 7 enabled campgrounds
+"
+1767579812627,"[INFO]	2026-01-05T02:23:32.627Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	90 booking nights selected for search, ranging from 2026-01-05 to 2026-04-04
+"
+1767579812627,"[INFO]	2026-01-05T02:23:32.627Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	4 different months selected for search, ranging from 2026-01-05 to 2026-04-04
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching across 5 campgrounds
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	    ⛰  Mount Tamalpais SP (#682) - 🏕  S Rav Cabin Area (#766)
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	    ⛰  Mount Tamalpais SP (#682) - 🏕  S Rav Camp Area (sites E1-E7) (#590)
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	    ⛰  Mount Tamalpais SP (#682) - 🏕  Pantoll Campgroup 16 Sites (#2009)
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	    ⛰  Mount Tamalpais SP (#682) - 🏕  Bootjack Campground 15-sites (#2008)
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	    ⛰  Julia Pfeiffer Burns SP (#661) - 🏕  Environmental Group Camp Area (#518)
+"
+1767579813465,"[INFO]	2026-01-05T02:23:33.465Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Cabin Area, Mount Tamalpais SP (766) for availability: January, 2026
+"
+1767579813548,"[INFO]	2026-01-05T02:23:33.548Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of January
+"
+1767579813548,"[INFO]	2026-01-05T02:23:33.548Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Camp Area (sites E1-E7), Mount Tamalpais SP (590) for availability: January, 2026
+"
+1767579813623,"[INFO]	2026-01-05T02:23:33.623Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	16 total sites found in month of January
+"
+1767579813623,"[INFO]	2026-01-05T02:23:33.623Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Pantoll Campgroup 16 Sites, Mount Tamalpais SP (2009) for availability: January, 2026
+"
+1767579814578,"[INFO]	2026-01-05T02:23:34.578Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of January
+"
+1767579814578,"[INFO]	2026-01-05T02:23:34.578Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Bootjack Campground 15-sites, Mount Tamalpais SP (2008) for availability: January, 2026
+"
+1767579815580,"[INFO]	2026-01-05T02:23:35.580Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of January
+"
+1767579815580,"[INFO]	2026-01-05T02:23:35.580Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Environmental Group Camp Area, Julia Pfeiffer Burns SP (518) for availability: January, 2026
+"
+1767579816619,"[INFO]	2026-01-05T02:23:36.619Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	3 total sites found in month of January
+"
+1767579816619,"[INFO]	2026-01-05T02:23:36.619Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Cabin Area, Mount Tamalpais SP (766) for availability: February, 2026
+"
+1767579817627,"[INFO]	2026-01-05T02:23:37.627Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of February
+"
+1767579817627,"[INFO]	2026-01-05T02:23:37.627Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Camp Area (sites E1-E7), Mount Tamalpais SP (590) for availability: February, 2026
+"
+1767579818604,"[INFO]	2026-01-05T02:23:38.604Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	37 total sites found in month of February
+"
+1767579818604,"[INFO]	2026-01-05T02:23:38.604Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Pantoll Campgroup 16 Sites, Mount Tamalpais SP (2009) for availability: February, 2026
+"
+1767579819581,"[INFO]	2026-01-05T02:23:39.581Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of February
+"
+1767579819581,"[INFO]	2026-01-05T02:23:39.581Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Bootjack Campground 15-sites, Mount Tamalpais SP (2008) for availability: February, 2026
+"
+1767579820581,"[INFO]	2026-01-05T02:23:40.581Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of February
+"
+1767579820581,"[INFO]	2026-01-05T02:23:40.581Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Environmental Group Camp Area, Julia Pfeiffer Burns SP (518) for availability: February, 2026
+"
+1767579821585,"[INFO]	2026-01-05T02:23:41.585Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of February
+"
+1767579821585,"[INFO]	2026-01-05T02:23:41.585Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Cabin Area, Mount Tamalpais SP (766) for availability: March, 2026
+"
+1767579822623,"[INFO]	2026-01-05T02:23:42.623Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of March
+"
+1767579822623,"[INFO]	2026-01-05T02:23:42.623Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Camp Area (sites E1-E7), Mount Tamalpais SP (590) for availability: March, 2026
+"
+1767579823625,"[INFO]	2026-01-05T02:23:43.625Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	24 total sites found in month of March
+"
+1767579823625,"[INFO]	2026-01-05T02:23:43.625Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Pantoll Campgroup 16 Sites, Mount Tamalpais SP (2009) for availability: March, 2026
+"
+1767579824589,"[INFO]	2026-01-05T02:23:44.588Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of March
+"
+1767579824589,"[INFO]	2026-01-05T02:23:44.589Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Bootjack Campground 15-sites, Mount Tamalpais SP (2008) for availability: March, 2026
+"
+1767579825582,"[INFO]	2026-01-05T02:23:45.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of March
+"
+1767579825582,"[INFO]	2026-01-05T02:23:45.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Environmental Group Camp Area, Julia Pfeiffer Burns SP (518) for availability: March, 2026
+"
+1767579826584,"[INFO]	2026-01-05T02:23:46.583Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of March
+"
+1767579826584,"[INFO]	2026-01-05T02:23:46.584Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Cabin Area, Mount Tamalpais SP (766) for availability: April, 2026
+"
+1767579827622,"[INFO]	2026-01-05T02:23:47.622Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of April
+"
+1767579827622,"[INFO]	2026-01-05T02:23:47.622Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching S Rav Camp Area (sites E1-E7), Mount Tamalpais SP (590) for availability: April, 2026
+"
+1767579828645,"[INFO]	2026-01-05T02:23:48.645Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	3 total sites found in month of April
+"
+1767579828645,"[INFO]	2026-01-05T02:23:48.645Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Pantoll Campgroup 16 Sites, Mount Tamalpais SP (2009) for availability: April, 2026
+"
+1767579829582,"[INFO]	2026-01-05T02:23:49.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of April
+"
+1767579829582,"[INFO]	2026-01-05T02:23:49.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Bootjack Campground 15-sites, Mount Tamalpais SP (2008) for availability: April, 2026
+"
+1767579830582,"[INFO]	2026-01-05T02:23:50.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of April
+"
+1767579830582,"[INFO]	2026-01-05T02:23:50.582Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Environmental Group Camp Area, Julia Pfeiffer Burns SP (518) for availability: April, 2026
+"
+1767579831588,"[INFO]	2026-01-05T02:23:51.588Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of April
+"
+1767579833064,"[INFO]	2026-01-05T02:23:53.064Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	⛺️ ⛺️ ⛺️ ⛺️ 80 Reservable Campsites Matching Search Preferences
+"
+1767579833067,"[INFO]	2026-01-05T02:23:53.067Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Found 80 available sites for ReserveCalifornia
+"
+1767579833124,"[INFO]	2026-01-05T02:23:53.124Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Found credentials in environment variables.
+"
+1767579833643,"[INFO]	2026-01-05T02:23:53.643Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Changes detected for ReserveCalifornia, added 80 sites
+"
+1767579833645,"[INFO]	2026-01-05T02:23:53.644Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	90 booking nights selected for search, ranging from 2026-01-05 to 2026-04-04
+"
+1767579833645,"[INFO]	2026-01-05T02:23:53.645Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	4 different months selected for search, ranging from 2026-01-05 to 2026-04-04
+"
+1767579835616,"[INFO]	2026-01-05T02:23:55.616Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	2 Matching Campgrounds Found
+"
+1767579835616,"[INFO]	2026-01-05T02:23:55.616Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	⛰  Point Reyes National Seashore, CA (#2864) - 🏕  Point Reyes National Seashore Campground (#233359)
+"
+1767579835616,"[INFO]	2026-01-05T02:23:55.616Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	⛰  Tahoe National Forest, CA (#1077) - 🏕  Sardine Peak Lookout (#252037)
+"
+1767579835618,"[INFO]	2026-01-05T02:23:55.618Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching across 2 campgrounds
+"
+1767579835842,"[INFO]	2026-01-05T02:23:55.842Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Metadata fetched for 52 campsites
+"
+1767579835842,"[INFO]	2026-01-05T02:23:55.842Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Point Reyes National Seashore Campground, Point Reyes National Seashore, CA (233359) for availability: January, 2026
+"
+1767579836825,"[INFO]	2026-01-05T02:23:56.825Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	762 total sites found in month of January
+"
+1767579837896,"[INFO]	2026-01-05T02:23:57.895Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Point Reyes National Seashore Campground, Point Reyes National Seashore, CA (233359) for availability: February, 2026
+"
+1767579838544,"[INFO]	2026-01-05T02:23:58.544Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	594 total sites found in month of February
+"
+1767579840055,"[INFO]	2026-01-05T02:24:00.054Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Point Reyes National Seashore Campground, Point Reyes National Seashore, CA (233359) for availability: March, 2026
+"
+1767579841025,"[INFO]	2026-01-05T02:24:01.025Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	607 total sites found in month of March
+"
+1767579842426,"[INFO]	2026-01-05T02:24:02.426Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Point Reyes National Seashore Campground, Point Reyes National Seashore, CA (233359) for availability: April, 2026
+"
+1767579842587,"[INFO]	2026-01-05T02:24:02.587Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		⛺️	60 total sites found in month of April
+"
+1767579844077,"[INFO]	2026-01-05T02:24:04.077Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Sardine Peak Lookout, Tahoe National Forest, CA (252037) for availability: January, 2026
+"
+1767579844143,"[INFO]	2026-01-05T02:24:04.143Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of January
+"
+1767579844143,"[INFO]	2026-01-05T02:24:04.143Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Sardine Peak Lookout, Tahoe National Forest, CA (252037) for availability: February, 2026
+"
+1767579844236,"[INFO]	2026-01-05T02:24:04.236Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of February
+"
+1767579844236,"[INFO]	2026-01-05T02:24:04.236Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Sardine Peak Lookout, Tahoe National Forest, CA (252037) for availability: March, 2026
+"
+1767579844323,"[INFO]	2026-01-05T02:24:04.323Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of March
+"
+1767579844323,"[INFO]	2026-01-05T02:24:04.323Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Searching Sardine Peak Lookout, Tahoe National Forest, CA (252037) for availability: April, 2026
+"
+1767579845149,"[INFO]	2026-01-05T02:24:05.148Z	99d50aef-c5ac-43cf-9763-fa34e878aa07		❌	0 total sites found in month of April
+"
+1767579877204,"[INFO]	2026-01-05T02:24:37.204Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	⛺️ ⛺️ ⛺️ ⛺️ 1987 Reservable Campsites Matching Search Preferences
+"
+1767579878082,"[INFO]	2026-01-05T02:24:38.082Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Found 1987 available sites for RecreationDotGov
+"
+1767579878267,"[INFO]	2026-01-05T02:24:38.266Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Changes detected for RecreationDotGov, added 1543 sites
+"
+1767579878304,"[ERROR]	2026-01-05T02:24:38.304Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Failed to send notification: name 'get_campground_info_by_facility_name' is not defined
+"
+1767579878324,"[ERROR]	2026-01-05T02:24:38.324Z	99d50aef-c5ac-43cf-9763-fa34e878aa07	Failed to generate dashboard: name 'campgrounds_config' is not defined
+"
+1767579878404,"END RequestId: 99d50aef-c5ac-43cf-9763-fa34e878aa07
+"
+1767579878404,"REPORT RequestId: 99d50aef-c5ac-43cf-9763-fa34e878aa07	Duration: 68058.83 ms	Billed Duration: 68487 ms	Memory Size: 512 MB	Max Memory Used: 240 MB	Init Duration: 427.95 ms	
+"
