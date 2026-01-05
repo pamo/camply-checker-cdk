@@ -207,7 +207,8 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.12 - SIMPLE DEDUPLICATION - 2026-01-05 ===")
+    version = os.environ.get('CODE_VERSION', 'dev')
+    logger.info(f"=== CAMPLY CHECKER {version} ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
@@ -458,7 +459,6 @@ def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool
         site_ids = sorted([site.get('campsite_id', '') for site in sites])
         simple_data = f"{len(sites)}:{':'.join(site_ids)}"
         current_hash = hashlib.md5(simple_data.encode()).hexdigest()
-        logger.info(f"Generated simple hash for {len(sites)} sites: {current_hash}")
 
         try:
             # Get last sent hash from S3

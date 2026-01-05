@@ -59,6 +59,7 @@ export class CamplyLambda extends Construct {
           LOG_LEVEL: 'INFO',
           DEPLOYMENT_TIMESTAMP: Date.now().toString(), // Force update
           CONFIG_VERSION: '2.0',
+          CODE_VERSION: process.env.GITHUB_SHA?.substring(0, 7) || `local-${Date.now()}`,
         },
       });
     } else {
@@ -84,6 +85,7 @@ export class CamplyLambda extends Construct {
           EMAIL_FROM_ADDRESS: props.emailFromAddress,
           LOG_LEVEL: 'INFO',
           DEPLOYMENT_TIMESTAMP: Date.now().toString(), // Force update
+          CODE_VERSION: process.env.GITHUB_SHA?.substring(0, 7) || `local-${Date.now()}`,
         },
       });
     }
