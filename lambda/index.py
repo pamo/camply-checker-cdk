@@ -22,21 +22,27 @@ def load_campground_config():
         enabled_campgrounds.sort(key=lambda x: x.get('priority', 999))
         
         logger.info(f"Loaded {len(enabled_campgrounds)} enabled campgrounds")
-        return enabled_campgrounds
+        # Return the full config structure
+        return {
+            'campgrounds': enabled_campgrounds,
+            'version': config.get('version', '2.0')
+        }
     except Exception as e:
         logger.error(f"Failed to load campground config: {str(e)}")
         # Fallback to hardcoded config
-        return [
-            {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True},
-            {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True},
-            {'id': 233359, 'name': 'Point Reyes National Seashore', 'provider': 'RecreationDotGov', 'priority': 3, 'enabled': True, 'filter': 'hike-in'},
-            {'id': 252037, 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov', 'priority': 4, 'enabled': True}
-        ]
+        return {
+            'campgrounds': [
+                {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True},
+                {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True},
+                {'id': 233359, 'name': 'Point Reyes National Seashore', 'provider': 'RecreationDotGov', 'priority': 3, 'enabled': True, 'filter': 'hike-in'},
+                {'id': 252037, 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov', 'priority': 4, 'enabled': True}
+            ]
+        }
 
 def group_campgrounds_by_provider(campgrounds_config):
     """Group campgrounds by provider for camply search"""
     providers = {}
-    for campground in campgrounds_config:
+    for campground in campgrounds_config.get('campgrounds', []):
         provider = campground['provider']
         if provider not in providers:
             providers[provider] = []
@@ -174,7 +180,7 @@ def lambda_handler(event, context):
     Simplified Lambda handler for campground checking
     """
     # Version marker for deployment verification
-    logger.info("=== CAMPLY CHECKER v3.6 - COMPLETE EMAIL FIX - 2026-01-04 ===")
+    logger.info("=== CAMPLY CHECKER v3.7 - LIST OBJECT FIX - 2026-01-04 ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
