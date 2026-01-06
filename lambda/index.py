@@ -456,7 +456,7 @@ def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool
         sites_key = f"{provider}_sites"
         
         # Create a simple hash based on just the count and campsite IDs
-        site_ids = sorted([site.get('campsite_id', '') for site in sites])
+        site_ids = sorted([str(site.get('campsite_id', '')) for site in sites])
         simple_data = f"{len(sites)}:{':'.join(site_ids)}"
         current_hash = hashlib.md5(simple_data.encode()).hexdigest()
 
