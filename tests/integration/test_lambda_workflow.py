@@ -13,9 +13,29 @@ import pytz
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../lambda'))
 
 def test_notification_logic():
-    """Test email notification deduplication logic"""
+    """Test email notification deduplication logic with realistic camply data"""
     try:
         from index import should_send_notification
+        
+        # Use realistic camply site data structure
+        realistic_sites = [
+            {
+                'campsite_id': 123456,  # Integer like camply returns
+                'facility_name': 'S Rav Camp Area Site E1',
+                'booking_date': '2026-01-06',
+                'booking_end_date': '2026-01-07',
+                'site_name': 'Site E1',
+                'campground_id': 590
+            },
+            {
+                'campsite_id': 789012,  # Integer like camply returns
+                'facility_name': 'S Rav Camp Area Site E2', 
+                'booking_date': '2026-01-06',
+                'booking_end_date': '2026-01-07',
+                'site_name': 'Site E2',
+                'campground_id': 590
+            }
+        ]
         
         # Mock boto3.client to simulate no cache bucket (should always send)
         with patch('index.boto3.client') as mock_boto3:
@@ -24,13 +44,13 @@ def test_notification_logic():
             
             # Test: No cache bucket - should send
             mock_s3.head_object.side_effect = Exception("NoSuchBucket")
-            result = should_send_notification([{'site': 'test'}], 'TestProvider')
+            result = should_send_notification(realistic_sites, 'ReserveCalifornia')
             assert result == True, "Should send when no cache bucket"
             
             # Test: First time (no existing cache) - should send  
             mock_s3.head_object.side_effect = Exception("NoSuchKey")
             mock_s3.get_object.side_effect = Exception("NoSuchKey")
-            result = should_send_notification([{'site': 'test'}], 'TestProvider')
+            result = should_send_notification(realistic_sites, 'ReserveCalifornia')
             assert result == True, "Should send first time"
         
         print("✅ Notification logic tests passed")
@@ -87,6 +107,56 @@ def test_date_formatting():
         print(f"❌ Date formatting test failed: {e}")
         return False
 
+def test_deduplication_with_realistic_data():
+    """Test deduplication function with realistic camply data to catch type errors"""
+    try:
+        from index import should_send_notification
+        import hashlib
+        
+        # Realistic camply data with integer campsite_ids
+        realistic_sites = [
+            {
+                'campsite_id': 123456,  # This is an integer in real camply data
+                'facility_name': 'S Rav Camp Area Site E1',
+                'booking_date': '2026-01-06',
+                'booking_end_date': '2026-01-07',
+                'site_name': 'Site E1',
+                'campground_id': 590
+            },
+            {
+                'campsite_id': 789012,  # This is an integer in real camply data
+                'facility_name': 'S Rav Camp Area Site E2',
+                'booking_date': '2026-01-06', 
+                'booking_end_date': '2026-01-07',
+                'site_name': 'Site E2',
+                'campground_id': 590
+            }
+        ]
+        
+        # Test that the hash generation works without TypeError
+        site_ids = sorted([str(site.get('campsite_id', '')) for site in realistic_sites])
+        simple_data = f"{len(realistic_sites)}:{':'.join(site_ids)}"
+        test_hash = hashlib.md5(simple_data.encode()).hexdigest()
+        
+        assert isinstance(test_hash, str), "Hash should be a string"
+        assert len(test_hash) == 32, "MD5 hash should be 32 characters"
+        
+        # Test the actual function (this would have caught the original TypeError)
+        with patch('index.boto3.client') as mock_boto3:
+            mock_s3 = Mock()
+            mock_boto3.return_value = mock_s3
+            mock_s3.head_object.side_effect = Exception("NoSuchBucket")
+            
+            # This should not raise a TypeError
+            result = should_send_notification(realistic_sites, 'ReserveCalifornia')
+            assert isinstance(result, bool), "Function should return boolean"
+        
+        print("✅ Deduplication with realistic data test passed")
+        return True
+    except Exception as e:
+        print(f"❌ Deduplication with realistic data test failed: {e}")
+        return False
+
 def run_integration_tests():
     """Run all integration tests"""
     print("🧪 Running Lambda integration tests...\n")
@@ -94,6 +164,7 @@ def run_integration_tests():
     tests = [
         test_notification_logic,
         test_url_generation,
+        test_deduplication_with_realistic_data,
         test_date_formatting
     ]
     
