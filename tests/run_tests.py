@@ -40,6 +40,14 @@ def run_all_tests():
     ])
     
     print("\n" + "=" * 50)
+    print("PRIORITY TESTS")
+    print("=" * 50)
+    priority_result = subprocess.run([
+        python_path,
+        os.path.join(os.path.dirname(__file__), 'unit/test_priority_sorting.py')
+    ])
+    
+    print("\n" + "=" * 50)
     print("INTEGRATION TESTS") 
     print("=" * 50)
     integration_result = subprocess.run([
@@ -53,12 +61,14 @@ def run_all_tests():
     print("=" * 50)
     
     unit_passed = unit_result.returncode == 0
+    priority_passed = priority_result.returncode == 0
     integration_passed = integration_result.returncode == 0
     
     print(f"Unit Tests: {'✅ PASSED' if unit_passed else '❌ FAILED'}")
+    print(f"Priority Tests: {'✅ PASSED' if priority_passed else '❌ FAILED'}")
     print(f"Integration Tests: {'✅ PASSED' if integration_passed else '❌ FAILED'}")
     
-    if unit_passed and integration_passed:
+    if unit_passed and priority_passed and integration_passed:
         print("\n🎉 All tests passed! Safe to deploy.")
         return 0
     else:

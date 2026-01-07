@@ -362,6 +362,8 @@ def lambda_handler(event, context):
 
         # Send single notification with all changed results
         if all_changed_results:
+            # Sort all results by priority before sending notification (cabins first)
+            all_changed_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
             send_notification(all_changed_results, "Multiple Providers", campgrounds_config)
         else:
             logger.info("No changes in availability across all providers, skipping notification")
@@ -574,6 +576,9 @@ def generate_dashboard(all_sites, campgrounds_config):
 
         area_options = ''.join(f'<option value="{area}">{area}</option>' for area in sorted(areas))
 
+        # Sort sites by priority (cabins first), then by date
+        sites_data.sort(key=lambda x: (x['priority'], x['booking_date'] or ''))
+
         html_content = template.replace('{{LAST_UPDATED}}', datetime.utcnow().isoformat() + 'Z')
         html_content = html_content.replace('{{TOTAL_SITES}}', str(len(sites_data)))
         html_content = html_content.replace('{{TOTAL_AREAS}}', str(len(areas)))
@@ -667,7 +672,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str, campgrounds_co
             min_priority = 999
             for facility_sites in facilities.values():
                 for site in facility_sites:
-                    min_priority = min(min_priority, site.get('priority', 999))
+                    min_priority = min(min_priority, get_site_priority(site, campgrounds_config))
             return min_priority
 
         sorted_rec_areas = sorted(sites_by_rec_area.items(), key=sort_rec_areas)
@@ -696,7 +701,7 @@ def send_notification(sites: List[Dict[str, Any]], provider: str, campgrounds_co
                 """
 
                 # Sort sites by priority first, then by date
-                facility_sites.sort(key=lambda x: (x.get('priority', 999), x['booking_date']))
+                facility_sites.sort(key=lambda x: (get_site_priority(x, campgrounds_config), x['booking_date']))
 
                 for site in facility_sites:
                     # Format date with relative time
