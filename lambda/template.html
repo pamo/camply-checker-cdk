@@ -77,6 +77,70 @@
       tr:nth-child(even) {
         background-color: #f9f9f9;
       }
+      
+      /* Mobile responsive styles */
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+          padding: 15px;
+        }
+        
+        .filters {
+          padding: 10px;
+        }
+        
+        .filter-group {
+          display: block;
+          margin: 10px 0;
+        }
+        
+        select, input {
+          width: 100%;
+          max-width: 200px;
+        }
+        
+        /* Hide table headers on mobile */
+        table thead {
+          display: none;
+        }
+        
+        /* Make each row a card */
+        table tbody tr {
+          display: block;
+          border: 1px solid #ddd;
+          margin-bottom: 10px;
+          padding: 10px;
+          border-radius: 5px;
+          background: white;
+        }
+        
+        /* Stack table cells vertically */
+        table tbody td {
+          display: block;
+          border: none;
+          padding: 5px 0;
+          text-align: left;
+        }
+        
+        /* Add labels for mobile */
+        table tbody td:nth-child(1):before { content: "Campground: "; font-weight: bold; }
+        table tbody td:nth-child(2):before { content: "Site: "; font-weight: bold; }
+        table tbody td:nth-child(3):before { content: "Date: "; font-weight: bold; }
+        table tbody td:nth-child(4):before { content: "Nights: "; font-weight: bold; }
+        table tbody td:nth-child(5):before { content: ""; }
+        
+        /* Make book button full width on mobile */
+        .book-link {
+          display: block;
+          text-align: center;
+          margin-top: 10px;
+          padding: 12px;
+          font-size: 16px;
+        }
+        
+        h1 { font-size: 24px; }
+        h2 { font-size: 18px; }
+      }
       .book-link,
       .filter-group button {
         background-color: #4caf50;
