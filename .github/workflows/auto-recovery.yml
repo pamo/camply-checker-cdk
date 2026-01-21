@@ -1,10 +1,9 @@
-name: Smart Auto Recovery
+name: Smart Auto Recovery (DISABLED - ARM64)
 
+# Disabled because we're now using ARM64 architecture
+# The workflow was designed for x86_64 Docker cache issues
 on:
-  schedule:
-    # Check every 15 minutes for faster response
-    - cron: '*/15 * * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch: # Only allow manual trigger
 
 jobs:
   smart-recovery:
@@ -76,6 +75,8 @@ jobs:
           echo "🔧 Cleaning Docker cache and redeploying..."
           docker system prune -af --volumes
           npm run build
+          # Use buildx for ARM64 cross-compilation on x86_64 GitHub runners
+          docker buildx create --use --name arm-builder || docker buildx use arm-builder
           npx cdk deploy --all -c env=prod --require-approval never
 
       - name: Verify recovery
