@@ -47,7 +47,7 @@ def load_campground_config():
         # Fallback to hardcoded config
         return {
             'campgrounds': [
-                {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True, 'park_id': 682, 'facility_name_patterns': ['S Rav Cabin', 'Steep Ravine']},
+                {'id': 766, 'name': 'Steep Ravine', 'provider': 'ReserveCalifornia', 'priority': 1, 'enabled': True, 'notify': True, 'park_id': 682, 'facility_name_patterns': ['S Rav Cabin', 'Steep Ravine']},
                 {'id': 590, 'name': 'Steep Ravine Campgrounds', 'provider': 'ReserveCalifornia', 'priority': 2, 'enabled': True, 'park_id': 682, 'facility_name_patterns': ['S Rav Camp', 'Steep Ravine']},
                 {'id': 233359, 'name': 'Point Reyes National Seashore', 'provider': 'RecreationDotGov', 'priority': 3, 'enabled': True, 'filter': 'hike-in'},
                 {'id': 252037, 'name': 'Sardine Peak Lookout', 'provider': 'RecreationDotGov', 'priority': 4, 'enabled': True}
@@ -285,7 +285,7 @@ def lambda_handler(event, context):
         campgrounds = group_campgrounds_by_provider(campgrounds_config)
 
         all_results = []
-        all_changed_results = []
+        notify_results = []
 
         for config in campgrounds:
             try:
@@ -328,7 +328,7 @@ def lambda_handler(event, context):
                         # Extract and format site name
                         formatted_site_name = extract_site_name(site.campsite_site_name, campground_meta)
 
-                        sites_data.append({
+                        site_data = {
                             'campsite_id': site.campsite_id,
                             'booking_date': site.booking_date.isoformat() if site.booking_date else None,
                             'campsite_site_name': formatted_site_name,
@@ -341,18 +341,16 @@ def lambda_handler(event, context):
                             'campsite_type': site.campsite_type,
                             'campground_id': getattr(site, 'campground_id', None),
                             'priority': campground_meta['priority'] if campground_meta else 999
-                        })
+                        }
+                        sites_data.append(site_data)
+
+                        # Track sites with notify=true
+                        if campground_meta and campground_meta.get('notify', False):
+                            notify_results.append(site_data)
 
                     # Sort by priority (lower numbers first)
                     sites_data.sort(key=lambda x: x.get('priority', 999))
                     all_results.extend(sites_data)
-
-                    # Only add to changed results if there are actual changes
-                    if should_send_notification(sites_data, config['provider']):
-                        all_changed_results.extend(sites_data)
-                        logger.info(f"Changes detected for {config['provider']}, added {len(sites_data)} sites")
-                    else:
-                        logger.info(f"No changes for {config['provider']}, skipping notification")
                 else:
                     logger.info(f"No availability found for {config['provider']}")
 
@@ -360,21 +358,17 @@ def lambda_handler(event, context):
                 logger.error(f"Error searching {config['provider']}: {str(e)}")
                 continue
 
-        # Send single notification with all changed results
-        if all_changed_results:
-            # Sort all results by priority before sending notification (cabins first)
-            all_changed_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
-            send_notification(all_changed_results, "Multiple Providers", campgrounds_config)
+        # Send email only if notify sites have changed
+        if notify_results and should_send_notification(notify_results, "notify_sites"):
+            notify_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
+            send_notification(notify_results, "Campground Availability", campgrounds_config)
+            logger.info(f"Notify sites changed, sent email for {len(notify_results)} sites")
         else:
-            logger.info("No changes in availability across all providers, skipping notification")
+            logger.info("No changes in notify sites, skipping email")
 
-        # Only generate dashboard if there are changes or it's been a while
-        should_update_dashboard = bool(all_changed_results) or should_force_dashboard_update()
-
-        if should_update_dashboard:
-            generate_dashboard(all_results, campgrounds_config)
-        else:
-            logger.info("No changes detected, skipping dashboard update")
+        # Always update dashboard with all results
+        generate_dashboard(all_results, campgrounds_config)
+        logger.info(f"Dashboard updated with {len(all_results)} total sites")
 
         return {
             'statusCode': 200,
@@ -492,29 +486,6 @@ def should_send_notification(sites: List[Dict[str, Any]], provider: str) -> bool
     except Exception as e:
         logger.error(f"Error in deduplication check: {str(e)}")
         return True  # Default to sending on error
-
-
-def should_force_dashboard_update():
-    """Check if dashboard should be updated even without changes (every 6 hours)"""
-    try:
-        import boto3
-        from datetime import datetime, timedelta
-
-        s3 = boto3.client('s3')
-        bucket_name = os.environ.get('CACHE_BUCKET_NAME')
-
-        if not bucket_name:
-            return True
-
-        try:
-            response = s3.head_object(Bucket=bucket_name, Key='dashboard_last_updated.txt')
-            last_modified = response['LastModified'].replace(tzinfo=None)
-            six_hours_ago = datetime.utcnow() - timedelta(hours=6)
-            return last_modified < six_hours_ago
-        except:
-            return True  # Force update if we can't check
-    except:
-        return True
 
 
 _template_cache = None

@@ -30,6 +30,7 @@ This directory contains the configuration for campgrounds monitored by the campl
 - **provider** (required): Either "RecreationDotGov" or "ReserveCalifornia"
 - **priority** (required): Lower numbers appear first in emails (1 = highest priority)
 - **enabled** (required): Set to `false` to disable monitoring without removing the entry
+- **notify** (optional): Set to `true` to send email notifications when availability changes (default: `false`)
 - **site_name_pattern** (optional): Regex pattern for extracting site names
 - **display_format** (optional): How to format site names in emails
   - `"simple"`: Basic site name display
@@ -42,6 +43,13 @@ Campgrounds are sorted by priority in emails:
 1. Steep Ravine (priority 1-2) - appears first
 2. Point Reyes (priority 3) 
 3. Other campgrounds (priority 4+)
+
+### Email Notifications vs Dashboard
+
+- **Dashboard**: Always updated with all enabled campgrounds on every run
+- **Email notifications**: Only sent when campgrounds with `notify: true` have availability changes
+  - Set `notify: true` for high-priority campgrounds you want immediate alerts for
+  - Leave `notify: false` (or omit) for campgrounds you only want to see on the dashboard
 
 ### Adding New Campgrounds
 

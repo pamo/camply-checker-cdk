@@ -6,6 +6,7 @@
       "provider": "ReserveCalifornia",
       "priority": 1,
       "enabled": true,
+      "notify": true,
       "display_format": "site_and_loop",
       "park_id": 682,
       "facility_name_patterns": ["Steep Ravine", "S Rav Cabin"],
@@ -26,7 +27,7 @@
       "name": "Point Reyes National Seashore",
       "provider": "RecreationDotGov",
       "priority": 3,
-      "enabled": false,
+      "enabled": true,
       "display_format": "site_and_loop",
       "filter": "hike-in"
     },
@@ -43,7 +44,7 @@
       "name": "Pantoll Campground",
       "provider": "ReserveCalifornia",
       "priority": 5,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 682
     },
@@ -52,7 +53,7 @@
       "name": "Frank Valley Horse Campground",
       "provider": "ReserveCalifornia",
       "priority": 6,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 682
     },
@@ -61,7 +62,7 @@
       "name": "Bootjack Campground",
       "provider": "ReserveCalifornia",
       "priority": 7,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 682
     },
@@ -70,7 +71,7 @@
       "name": "Julia Pfeiffer Burns",
       "provider": "ReserveCalifornia",
       "priority": 8,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 661
     },
@@ -79,7 +80,7 @@
       "name": "Borrego Palm Canyon (sites 1-52)",
       "provider": "ReserveCalifornia",
       "priority": 9,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 2
     },
@@ -88,7 +89,7 @@
       "name": "Borrego Palm Canyon (sites 53-89)",
       "provider": "ReserveCalifornia",
       "priority": 10,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 2
     },
@@ -97,7 +98,7 @@
       "name": "Borrego Palm Canyon (sites 90-120)",
       "provider": "ReserveCalifornia",
       "priority": 11,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 2
     },
@@ -106,7 +107,7 @@
       "name": "Tamarisk Grove Campground",
       "provider": "ReserveCalifornia",
       "priority": 12,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 2
     },
@@ -115,7 +116,7 @@
       "name": "Pfeiffer Big Sur - South Camp (sites 1-78)",
       "provider": "ReserveCalifornia",
       "priority": 13,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 690
     },
@@ -124,7 +125,7 @@
       "name": "Pfeiffer Big Sur - Weyland Camp (sites 79-130)",
       "provider": "ReserveCalifornia",
       "priority": 14,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 690
     },
@@ -133,7 +134,7 @@
       "name": "Pfeiffer Big Sur - Main Camp (sites 131-188)",
       "provider": "ReserveCalifornia",
       "priority": 15,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 690
     },
@@ -142,7 +143,7 @@
       "name": "Big Basin - Huckleberry Tent Cabins",
       "provider": "ReserveCalifornia",
       "priority": 16,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 618
     },
@@ -151,7 +152,7 @@
       "name": "Bothe-Napa Valley - Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 17,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 620
     },
@@ -160,7 +161,7 @@
       "name": "Bothe-Napa Valley - Valley Yurts",
       "provider": "ReserveCalifornia",
       "priority": 18,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 620
     },
@@ -169,7 +170,7 @@
       "name": "Brannan Island - Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 19,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 621
     },
@@ -178,7 +179,7 @@
       "name": "Calaveras Big Trees - Residence Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 20,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 5
     },
@@ -187,7 +188,7 @@
       "name": "Clear Lake - Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 21,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 629
     },
@@ -196,7 +197,7 @@
       "name": "Crystal Cove - Beach Cottages",
       "provider": "ReserveCalifornia",
       "priority": 22,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 634
     },
@@ -205,7 +206,7 @@
       "name": "Cuyamaca Ranch - Paso Picacho Cabins",
       "provider": "ReserveCalifornia",
       "priority": 23,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 7
     },
@@ -214,7 +215,7 @@
       "name": "Hendy Woods - Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 24,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 654
     },
@@ -223,7 +224,7 @@
       "name": "Jedediah Smith Redwoods - Redwoods Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 25,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 660
     },
@@ -232,7 +233,7 @@
       "name": "Lake Oroville - Floating Camping Area",
       "provider": "ReserveCalifornia",
       "priority": 26,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 662
     },
@@ -241,7 +242,7 @@
       "name": "Malakoff Diggins - North Bloomfield Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 27,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 669
     },
@@ -250,7 +251,7 @@
       "name": "McArthur-Burney Falls - Memorial Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 28,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 675
     },
@@ -259,7 +260,7 @@
       "name": "Sue-meg (Patrick's Point) - Agate Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 29,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 688
     },
@@ -268,7 +269,7 @@
       "name": "Prairie Creek Redwoods - Meadow Cabin Colony",
       "provider": "ReserveCalifornia",
       "priority": 30,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 696
     },
@@ -277,7 +278,7 @@
       "name": "Richardson Grove - Madrone Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 31,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 700
     },
@@ -286,7 +287,7 @@
       "name": "Samuel P. Taylor - Madrone Cabin Area",
       "provider": "ReserveCalifornia",
       "priority": 32,
-      "enabled": false,
+      "enabled": true,
       "display_format": "simple",
       "park_id": 706
     }
