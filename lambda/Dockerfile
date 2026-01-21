@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /var/task
 
-# Force rebuild - v2.0.1
-RUN echo "Config version 2.0.1" > /tmp/version.txt
+# Force rebuild - ARM64 v1.0
+RUN echo "ARM64 version 1.0" > /tmp/version.txt
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

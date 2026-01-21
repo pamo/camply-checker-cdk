@@ -40,8 +40,8 @@ export class CamplyLambda extends Construct {
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
-        architecture: lambda.Architecture.X86_64,
-        timeout: cdk.Duration.minutes(3),
+        architecture: lambda.Architecture.ARM_64,
+        timeout: cdk.Duration.minutes(5),
         memorySize: 512, // Increased to force redeployment
         description: `Camply checker function - deployed ${new Date().toISOString()} - v2.0`,
         environment: {
