@@ -144,6 +144,7 @@
       "provider": "ReserveCalifornia",
       "priority": 16,
       "enabled": true,
+      "notify": true,
       "display_format": "simple",
       "park_id": 618
     },
@@ -288,6 +289,7 @@
       "provider": "ReserveCalifornia",
       "priority": 32,
       "enabled": true,
+      "notify": true,
       "display_format": "simple",
       "park_id": 706
     }
