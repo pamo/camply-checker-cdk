@@ -113,23 +113,9 @@ npm run deploy:prod
 
 ## Auto-Recovery System
 
-The system includes GitHub Actions-based auto-recovery that:
-- **Monitors every 15 minutes** for Docker architecture failures
-- **Automatically fixes** Lambda deployment issues
-- **Sends recovery notifications** via direct SMTP
-- **Works while camping** - No manual intervention needed
+**Note:** Auto-recovery has been removed. The system uses x86_64 architecture which is stable on Mac builds.
 
-### Setup GitHub Actions Auto-Recovery
-
-1. Add these GitHub repository secrets:
-   - `AWS_ACCESS_KEY_ID`: Your AWS access key
-   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
-   - `EMAIL_USERNAME`: Your Gmail username
-   - `EMAIL_PASSWORD`: Your Gmail app password
-   - `EMAIL_TO_ADDRESS`: Notification recipients
-   - `EMAIL_FROM_ADDRESS`: Sender email
-
-2. The workflow automatically triggers every 15 minutes to check system health
+If you encounter issues:
 
 ## Recent Updates (v3.0 - Production Ready)
 
@@ -174,8 +160,12 @@ The system includes:
 
 ### Common Issues
 
+**Lambda Architecture:**
+- **Must use x86_64** - ARM64 causes "exec format error" when built on Mac
+- Architecture is hardcoded in `lib/constructs/camply-lambda.ts`
+- Do not change to ARM64 unless you configure cross-platform Docker builds
+
 **Docker architecture errors:**
-- **Auto-fixed** by GitHub Actions within 15 minutes
 - Manual fix: `docker system prune -f && npm run deploy:prod`
 
 **No availability notifications:**
