@@ -40,6 +40,8 @@ export class CamplyLambda extends Construct {
           },
         }),
         handler: lambda.Handler.FROM_IMAGE,
+        // IMPORTANT: Must use X86_64 - ARM64 causes "exec format error" on Mac builds
+        // CDK builds Docker images on the host architecture, which doesn't match Lambda's Linux ARM64
         architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.minutes(5),
         memorySize: 512, // Increased to force redeployment
