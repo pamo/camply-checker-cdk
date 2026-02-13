@@ -347,6 +347,7 @@ def lambda_handler(event, context):
                         # Track sites with notify=true
                         if campground_meta and campground_meta.get('notify', False):
                             notify_results.append(site_data)
+                            logger.info(f"Added notify site: {site_data.get('campground_name')} - {site_data.get('campsite_site_name')}")
 
                     # Sort by priority (lower numbers first)
                     sites_data.sort(key=lambda x: x.get('priority', 999))
@@ -359,6 +360,7 @@ def lambda_handler(event, context):
                 continue
 
         # Send email only if notify sites have changed
+        logger.info(f"notify_results count: {len(notify_results)}")
         if notify_results and should_send_notification(notify_results, "notify_sites"):
             notify_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
             send_notification(notify_results, "Campground Availability", campgrounds_config)
