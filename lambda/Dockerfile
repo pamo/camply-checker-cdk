@@ -1,5 +1,5 @@
 # Use Python 3.11 slim image to avoid numpy conflicts
-FROM python:3.11-slim
+FROM --platform=linux/amd64 python:3.11-slim
 
 # Set working directory
 WORKDIR /var/task
