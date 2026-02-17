@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /var/task
 
-# Version marker for x86_64 architecture - Force rebuild 2026-02-17-14:52
-RUN echo "x86_64 version 1.1" > /tmp/version.txt
+# Version marker for x86_64 architecture - Force rebuild 2026-02-17-15:02
+RUN echo "x86_64 version 1.2" > /tmp/version.txt
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

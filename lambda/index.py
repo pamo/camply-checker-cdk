@@ -315,11 +315,19 @@ def lambda_handler(event, context):
                     # Convert to serializable format and add metadata
                     sites_data = []
                     for site in available_sites:
-                        # Get campground metadata
-                        campground_meta = get_campground_metadata(getattr(site, 'campground_id', None), campgrounds_config)
+                        # Get campground metadata - try by ID first, then by facility name
+                        campground_id = getattr(site, 'campground_id', None)
+                        campground_meta = get_campground_metadata(campground_id, campgrounds_config)
+                        
+                        # If no match by ID, try matching by facility name (for Recreation.gov)
+                        if not campground_meta:
+                            campground_meta = get_campground_info_by_facility_name(site.facility_name, campgrounds_config)
+                            if campground_meta:
+                                logger.info(f"  → Matched by facility name: {campground_meta.get('name')}")
+                            else:
+                                logger.info(f"  → No match for facility: {site.facility_name}")
                         
                         # Debug: Log campground matching
-                        campground_id = getattr(site, 'campground_id', None)
                         logger.info(f"Processing site: campground_id={campground_id}, facility={site.facility_name}, meta={campground_meta is not None}, notify={campground_meta.get('notify', False) if campground_meta else 'N/A'}")
                         
                         # Filter Point Reyes to only include hike-in campgrounds
