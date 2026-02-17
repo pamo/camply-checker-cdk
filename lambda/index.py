@@ -208,7 +208,7 @@ def lambda_handler(event, context):
     """
     # Version marker for deployment verification
     version = os.environ.get('CODE_VERSION', 'dev')
-    logger.info(f"=== CAMPLY CHECKER {version} ===")
+    logger.info(f"=== CAMPLY CHECKER {version} - FACILITY MATCHING ENABLED ===")
     
     try:
         # Set up writable directories for camply BEFORE importing
