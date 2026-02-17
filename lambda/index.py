@@ -318,6 +318,10 @@ def lambda_handler(event, context):
                         # Get campground metadata
                         campground_meta = get_campground_metadata(getattr(site, 'campground_id', None), campgrounds_config)
                         
+                        # Debug: Log campground matching
+                        campground_id = getattr(site, 'campground_id', None)
+                        logger.info(f"Processing site: campground_id={campground_id}, facility={site.facility_name}, meta={campground_meta is not None}, notify={campground_meta.get('notify', False) if campground_meta else 'N/A'}")
+                        
                         # Filter Point Reyes to only include hike-in campgrounds
                         if site.facility_name == "Point Reyes National Seashore Campground":
                             if site.campsite_type and "HIKE TO" in site.campsite_type:
