@@ -372,10 +372,13 @@ def lambda_handler(event, context):
 
         # Send email only if notify sites have changed
         if notify_results:
-            # Always send email for notify sites (no deduplication for priority campgrounds)
-            notify_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
-            send_notification(notify_results, "Campground Availability", campgrounds_config)
-            logger.info(f"Sent email for {len(notify_results)} notify sites")
+            # Check if we should send notification (deduplication)
+            if should_send_notification(notify_results, "notify"):
+                notify_results.sort(key=lambda x: get_site_priority(x, campgrounds_config))
+                send_notification(notify_results, "Campground Availability", campgrounds_config)
+                logger.info(f"Sent email for {len(notify_results)} notify sites")
+            else:
+                logger.info(f"Skipping email - no changes detected for {len(notify_results)} notify sites")
         else:
             logger.info("No notify sites available, skipping email")
 
