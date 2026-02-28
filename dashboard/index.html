@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campground Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .filters {
+        background: #e8f5e8;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .filter-group label:first-child {
+        font-weight: bold;
+        white-space: nowrap;
+      }
+      select,
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .stats {
+        background: #f0f8ff;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+      .email-preview {
+        border: 2px solid #4caf50;
+        border-radius: 8px;
+        padding: 20px;
+        background: white;
+      }
+      h1 {
+        color: #2e8b57;
+        margin: 10px 0;
+        font-size: 20px;
+      }
+      h2 {
+        color: #4682b4;
+        margin: 15px 0 8px 0;
+        font-size: 16px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 8px 0 20px 0;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      
+      /* Mobile responsive styles */
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+          padding: 15px;
+        }
+        
+        .filters {
+          padding: 10px;
+        }
+        
+        .filter-group {
+          display: block;
+          margin: 10px 0;
+        }
+        
+        select, input {
+          width: 100%;
+          max-width: 200px;
+        }
+        
+        /* Hide table headers on mobile */
+        table thead {
+          display: none;
+        }
+        
+        /* Make each row a card */
+        table tbody tr {
+          display: block;
+          border: 1px solid #ddd;
+          margin-bottom: 10px;
+          padding: 10px;
+          border-radius: 5px;
+          background: white;
+        }
+        
+        /* Stack table cells vertically */
+        table tbody td {
+          display: block;
+          border: none;
+          padding: 5px 0;
+          text-align: left;
+        }
+        
+        /* Add labels for mobile */
+        table tbody td:nth-child(1):before { content: "Campground: "; font-weight: bold; }
+        table tbody td:nth-child(2):before { content: "Site: "; font-weight: bold; }
+        table tbody td:nth-child(3):before { content: "Date: "; font-weight: bold; }
+        table tbody td:nth-child(4):before { content: "Nights: "; font-weight: bold; }
+        table tbody td:nth-child(5):before { content: ""; }
+        
+        /* Make book button full width on mobile */
+        .book-link {
+          display: block;
+          text-align: center;
+          margin-top: 10px;
+          padding: 12px;
+          font-size: 16px;
+        }
+        
+        h1 { font-size: 24px; }
+        h2 { font-size: 18px; }
+      }
+      .book-link,
+      .filter-group button {
+        background-color: #4caf50;
+        color: #e8f5e8 !important;
+        padding: 6px 12px;
+        text-decoration: none;
+        border-radius: 3px;
+        display: inline-block;
+        font-size: 12px;
+        border: 0;
+      }
+      .book-link:hover,
+      .filter-group button:hover {
+        cursor: pointer;
+        background-color: #45a049;
+      }
+      .weekend-toggle {
+        display: inline-flex;
+        gap: 0;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .weekend-toggle input[type="checkbox"] {
+        display: none;
+      }
+      .weekend-toggle label {
+        padding: 6px 12px;
+        background-color: #ddd;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background-color 0.2s;
+        border-right: 1px solid #ccc;
+      }
+      .weekend-toggle label:last-of-type {
+        border-right: none;
+      }
+      .weekend-toggle input[type="checkbox"]:checked + label {
+        background-color: #4caf50;
+        color: white;
+      }
+      .weekend-toggle label:hover {
+        background-color: #bbb;
+      }
+      .weekend-toggle input[type="checkbox"]:checked + label:hover {
+        background-color: #45a049;
+      }
+      .summary {
+        background-color: #e8f5e8;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 14px;
+      }
+      .rec-area-header {
+        color: #2e8b57;
+        border-bottom: 2px solid #2e8b57;
+        padding-bottom: 5px;
+        margin: 20px 0 10px 0;
+      }
+      .last-updated {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 20px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🏕️ Campground Dashboard</h1>
+
+      <div class="last-updated">Last updated: <span id="lastUpdated">2026-02-28 09:43:38</span></div>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label>Area:</label>
+          <select id="areaFilter">
+            <option value="">All Areas</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date Range:</label>
+          <input type="date" id="startDate" />
+          <input type="date" id="endDate" />
+        </div>
+        <div class="filter-group">
+          <label>Weekend Days:</label>
+          <div class="weekend-toggle">
+            <input type="checkbox" id="fridayFilter" />
+            <label for="fridayFilter">Friday</label>
+            <input type="checkbox" id="saturdayFilter" />
+            <label for="saturdayFilter">Saturday</label>
+            <input type="checkbox" id="sundayFilter" />
+            <label for="sundayFilter">Sunday</label>
+          </div>
+        </div>
+        <div class="filter-group">
+          <button onclick="applyFilters()">Apply Filters</button>
+          <button onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats">
+        Found <span id="totalSites">25</span> available campsites across
+        <span id="totalAreas">3</span> areas
+      </div>
+
+      <div class="email-preview">
+        <div id="emailContent">
+        <h1>🏕️ Campsite Availability Alert</h1>
+        <div class="summary">
+            <strong>Found 25 available campsites across 3 areas</strong>
+        </div>
+    <h1 class="rec-area-header">🏞️ Mount Tamalpais SP</h1><h2>S Rav Cabin Area</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            
+                    <tr>
+                        <td>2026-02-28</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/0_0" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-02</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/0_1" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-04</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/0_2" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-06</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/0_3" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-08</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/0_4" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    </tbody>
+                </table>
+            <h2>S Rav Camp Area (sites E1-E7)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            
+                    <tr>
+                        <td>2026-03-07</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/1_0" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-09</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/1_1" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-11</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/1_2" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-13</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/1_3" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-15</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/1_4" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    </tbody>
+                </table>
+            <h2>Frank Valley Horse Camp</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            
+                    <tr>
+                        <td>2026-03-14</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/2_0" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-16</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/2_1" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-18</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/2_2" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-20</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/2_3" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-22</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/2_4" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    </tbody>
+                </table>
+            <h1 class="rec-area-header">🏞️ Julia Pfeiffer Burns SP</h1><h2>Environmental Group Camp Area</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            
+                    <tr>
+                        <td>2026-03-28</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/4_0" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-30</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/4_1" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-04-01</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/4_2" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-04-03</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/4_3" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-04-05</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/4_4" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    </tbody>
+                </table>
+            <h1 class="rec-area-header">🏞️ Point Reyes National Seashore</h1><h2>Point Reyes National Seashore Campground</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Available Date</th>
+                            <th>Nights</th>
+                            <th>Book Now</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            
+                    <tr>
+                        <td>2026-03-21</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/3_0" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-23</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/3_1" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-25</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/3_2" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-27</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/3_3" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    <tr>
+                        <td>2026-03-29</td>
+                        <td>1 night</td>
+                        <td><a href="https://example.com/book/3_4" class="book-link">Book Now</a></td>
+                    </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+      </div>
+    </div>
+
+    <script>
+      const lastUpdatedElement = document.getElementById('lastUpdated');
+      const utcTime = lastUpdatedElement.textContent;
+      const localTime = new Date(utcTime).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+      lastUpdatedElement.textContent = localTime;
+
+      // Set start date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('startDate').value = today;
+
+      const sitesData = [
+  {
+    "campsite_id": "site_0_0",
+    "booking_date": "2026-02-28",
+    "campsite_site_name": "Site 1",
+    "facility_name": "S Rav Cabin Area",
+    "booking_url": "https://example.com/book/0_0",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 766,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_0_1",
+    "booking_date": "2026-03-02",
+    "campsite_site_name": "Site 2",
+    "facility_name": "S Rav Cabin Area",
+    "booking_url": "https://example.com/book/0_1",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 766,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_0_2",
+    "booking_date": "2026-03-04",
+    "campsite_site_name": "Site 3",
+    "facility_name": "S Rav Cabin Area",
+    "booking_url": "https://example.com/book/0_2",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 766,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_0_3",
+    "booking_date": "2026-03-06",
+    "campsite_site_name": "Site 4",
+    "facility_name": "S Rav Cabin Area",
+    "booking_url": "https://example.com/book/0_3",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 766,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_0_4",
+    "booking_date": "2026-03-08",
+    "campsite_site_name": "Site 5",
+    "facility_name": "S Rav Cabin Area",
+    "booking_url": "https://example.com/book/0_4",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 766,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_1_0",
+    "booking_date": "2026-03-07",
+    "campsite_site_name": "Site 1",
+    "facility_name": "S Rav Camp Area (sites E1-E7)",
+    "booking_url": "https://example.com/book/1_0",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 590,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_1_1",
+    "booking_date": "2026-03-09",
+    "campsite_site_name": "Site 2",
+    "facility_name": "S Rav Camp Area (sites E1-E7)",
+    "booking_url": "https://example.com/book/1_1",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 590,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_1_2",
+    "booking_date": "2026-03-11",
+    "campsite_site_name": "Site 3",
+    "facility_name": "S Rav Camp Area (sites E1-E7)",
+    "booking_url": "https://example.com/book/1_2",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 590,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_1_3",
+    "booking_date": "2026-03-13",
+    "campsite_site_name": "Site 4",
+    "facility_name": "S Rav Camp Area (sites E1-E7)",
+    "booking_url": "https://example.com/book/1_3",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 590,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_1_4",
+    "booking_date": "2026-03-15",
+    "campsite_site_name": "Site 5",
+    "facility_name": "S Rav Camp Area (sites E1-E7)",
+    "booking_url": "https://example.com/book/1_4",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 590,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_2_0",
+    "booking_date": "2026-03-14",
+    "campsite_site_name": "Site 1",
+    "facility_name": "Frank Valley Horse Camp",
+    "booking_url": "https://example.com/book/2_0",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 589,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_2_1",
+    "booking_date": "2026-03-16",
+    "campsite_site_name": "Site 2",
+    "facility_name": "Frank Valley Horse Camp",
+    "booking_url": "https://example.com/book/2_1",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 589,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_2_2",
+    "booking_date": "2026-03-18",
+    "campsite_site_name": "Site 3",
+    "facility_name": "Frank Valley Horse Camp",
+    "booking_url": "https://example.com/book/2_2",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 589,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_2_3",
+    "booking_date": "2026-03-20",
+    "campsite_site_name": "Site 4",
+    "facility_name": "Frank Valley Horse Camp",
+    "booking_url": "https://example.com/book/2_3",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 589,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_2_4",
+    "booking_date": "2026-03-22",
+    "campsite_site_name": "Site 5",
+    "facility_name": "Frank Valley Horse Camp",
+    "booking_url": "https://example.com/book/2_4",
+    "recreation_area": "Mount Tamalpais SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 589,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_3_0",
+    "booking_date": "2026-03-21",
+    "campsite_site_name": "Site 1",
+    "facility_name": "Point Reyes National Seashore Campground",
+    "booking_url": "https://example.com/book/3_0",
+    "recreation_area": "Point Reyes National Seashore",
+    "campsite_type": "STANDARD",
+    "campground_id": 233359,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_3_1",
+    "booking_date": "2026-03-23",
+    "campsite_site_name": "Site 2",
+    "facility_name": "Point Reyes National Seashore Campground",
+    "booking_url": "https://example.com/book/3_1",
+    "recreation_area": "Point Reyes National Seashore",
+    "campsite_type": "STANDARD",
+    "campground_id": 233359,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_3_2",
+    "booking_date": "2026-03-25",
+    "campsite_site_name": "Site 3",
+    "facility_name": "Point Reyes National Seashore Campground",
+    "booking_url": "https://example.com/book/3_2",
+    "recreation_area": "Point Reyes National Seashore",
+    "campsite_type": "STANDARD",
+    "campground_id": 233359,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_3_3",
+    "booking_date": "2026-03-27",
+    "campsite_site_name": "Site 4",
+    "facility_name": "Point Reyes National Seashore Campground",
+    "booking_url": "https://example.com/book/3_3",
+    "recreation_area": "Point Reyes National Seashore",
+    "campsite_type": "STANDARD",
+    "campground_id": 233359,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_3_4",
+    "booking_date": "2026-03-29",
+    "campsite_site_name": "Site 5",
+    "facility_name": "Point Reyes National Seashore Campground",
+    "booking_url": "https://example.com/book/3_4",
+    "recreation_area": "Point Reyes National Seashore",
+    "campsite_type": "STANDARD",
+    "campground_id": 233359,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_4_0",
+    "booking_date": "2026-03-28",
+    "campsite_site_name": "Site 1",
+    "facility_name": "Environmental Group Camp Area",
+    "booking_url": "https://example.com/book/4_0",
+    "recreation_area": "Julia Pfeiffer Burns SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 518,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_4_1",
+    "booking_date": "2026-03-30",
+    "campsite_site_name": "Site 2",
+    "facility_name": "Environmental Group Camp Area",
+    "booking_url": "https://example.com/book/4_1",
+    "recreation_area": "Julia Pfeiffer Burns SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 518,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_4_2",
+    "booking_date": "2026-04-01",
+    "campsite_site_name": "Site 3",
+    "facility_name": "Environmental Group Camp Area",
+    "booking_url": "https://example.com/book/4_2",
+    "recreation_area": "Julia Pfeiffer Burns SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 518,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_4_3",
+    "booking_date": "2026-04-03",
+    "campsite_site_name": "Site 4",
+    "facility_name": "Environmental Group Camp Area",
+    "booking_url": "https://example.com/book/4_3",
+    "recreation_area": "Julia Pfeiffer Burns SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 518,
+    "num_nights": 1
+  },
+  {
+    "campsite_id": "site_4_4",
+    "booking_date": "2026-04-05",
+    "campsite_site_name": "Site 5",
+    "facility_name": "Environmental Group Camp Area",
+    "booking_url": "https://example.com/book/4_4",
+    "recreation_area": "Julia Pfeiffer Burns SP",
+    "campsite_type": "STANDARD",
+    "campground_id": 518,
+    "num_nights": 1
+  }
+];
+      let filteredData = sitesData;
+
+      // Populate area filter
+      const areas = [...new Set(sitesData.map(site => site.recreation_area))];
+      const areaFilter = document.getElementById('areaFilter');
+      areas.forEach(area => {
+          const option = document.createElement('option');
+          option.value = area;
+          option.textContent = area;
+          areaFilter.appendChild(option);
+      });
+
+      function applyFilters() {
+          const areaFilter = document.getElementById('areaFilter').value;
+          const startDate = document.getElementById('startDate').value;
+          const endDate = document.getElementById('endDate').value;
+          const includeFriday = document.getElementById('fridayFilter').checked;
+          const includeSaturday = document.getElementById('saturdayFilter').checked;
+          const includeSunday = document.getElementById('sundayFilter').checked;
+
+          filteredData = sitesData.filter(site => {
+              if (areaFilter && site.recreation_area !== areaFilter) return false;
+              if (startDate && site.booking_date < startDate) return false;
+              if (endDate && site.booking_date > endDate) return false;
+              
+              // Weekend filter - only show selected days
+              const anyWeekendSelected = includeFriday || includeSaturday || includeSunday;
+              if (anyWeekendSelected) {
+                  const date = new Date(site.booking_date);
+                  const dayOfWeek = date.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
+                  const isFriday = dayOfWeek === 5;
+                  const isSaturday = dayOfWeek === 6;
+                  const isSunday = dayOfWeek === 0;
+                  
+                  const matchesFilter = (includeFriday && isFriday) || 
+                                       (includeSaturday && isSaturday) || 
+                                       (includeSunday && isSunday);
+                  if (!matchesFilter) return false;
+              }
+              
+              return true;
+          });
+
+          updateDisplay();
+      }
+
+      function clearFilters() {
+          document.getElementById('areaFilter').value = '';
+          document.getElementById('startDate').value = '';
+          document.getElementById('endDate').value = '';
+          filteredData = sitesData;
+          updateDisplay();
+      }
+
+      function updateDisplay() {
+          // Update stats
+          const uniqueAreas = [...new Set(filteredData.map(site => site.recreation_area))];
+          document.getElementById('totalSites').textContent = filteredData.length;
+          document.getElementById('totalAreas').textContent = uniqueAreas.length;
+
+          // Group sites by recreation area, then by facility
+          const sitesByArea = {};
+          filteredData.forEach(site => {
+              const area = site.recreation_area;
+              const facility = site.name;
+              if (!sitesByArea[area]) sitesByArea[area] = {};
+              if (!sitesByArea[area][facility]) sitesByArea[area][facility] = [];
+              sitesByArea[area][facility].push(site);
+          });
+
+          // Generate email content
+          let emailContent = `
+              <h1>🏕️ Campsite Availability Alert</h1>
+              <div class="summary">
+                  <strong>Found ${filteredData.length} available campsites across ${uniqueAreas.length} areas</strong>
+              </div>
+          `;
+
+          // Sort areas to put Steep Ravine first
+          const sortedAreas = Object.entries(sitesByArea).sort(([areaA], [areaB]) => {
+              const hasStepRavineA = Object.values(sitesByArea[areaA]).some(sites =>
+                  sites.some(site => [766, 590].includes(site.campground_id))
+              );
+              const hasStepRavineB = Object.values(sitesByArea[areaB]).some(sites =>
+                  sites.some(site => [766, 590].includes(site.campground_id))
+              );
+              if (hasStepRavineA && !hasStepRavineB) return -1;
+              if (!hasStepRavineA && hasStepRavineB) return 1;
+              return areaA.localeCompare(areaB);
+          });
+
+          sortedAreas.forEach(([area, facilities]) => {
+              emailContent += `<h1 class="rec-area-header">🏞️ ${area}</h1>`;
+
+              if (facilities && typeof facilities === 'object') {
+                  Object.entries(facilities).forEach(([facility, sites]) => {
+                  emailContent += `<h2>${facility}</h2>`;
+                  emailContent += `
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Campground</th>
+                                  <th>Site Name</th>
+                                  <th>Available Date</th>
+                                  <th>Nights</th>
+                                  <th>Book Now</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                  `;
+
+                  sites.sort((a, b) => {
+                      // Sort by priority first, then by date
+                      const priorityA = a.priority || 999;
+                      const priorityB = b.priority || 999;
+                      if (priorityA !== priorityB) {
+                          return priorityA - priorityB;
+                      }
+                      const dateA = a.booking_date || '';
+                      const dateB = b.booking_date || '';
+                      return dateA.localeCompare(dateB);
+                  });
+                  sites.forEach(site => {
+                      const formattedDate = site.formatted_date || 'No date';
+                      const nights = site.num_nights || 1;
+                      const campgroundName = site.campground_name || site.name || 'Unknown';
+                      const siteName = site.site_name || 'Unknown';
+                      emailContent += `
+                          <tr>
+                              <td>${campgroundName}</td>
+                              <td>${siteName}</td>
+                              <td>${formattedDate}</td>
+                              <td>${nights} night${nights !== 1 ? 's' : ''}</td>
+                              <td><a href="${site.url}" class="book-link">Book Now</a></td>
+                          </tr>
+                      `;
+                  });
+
+                  emailContent += `
+                          </tbody>
+                      </table>
+                  `;
+                  });
+              }
+          });
+
+          emailContent += `
+              <p style="margin-top: 20px; color: #666; font-size: 11px; line-height: 1.4;">
+                  This is an automated notification from your Campground checker.
+                  Book quickly as availability changes frequently!
+              </p>
+          `;
+
+          document.getElementById('emailContent').innerHTML = emailContent;
+      }
+
+      updateDisplay();
+    </script>
+  </body>
+</html>

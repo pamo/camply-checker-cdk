@@ -23,10 +23,19 @@
         padding: 15px;
         border-radius: 4px;
         margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
       }
       .filter-group {
-        display: inline-block;
-        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .filter-group label:first-child {
+        font-weight: bold;
+        white-space: nowrap;
       }
       select,
       input {
@@ -157,6 +166,36 @@
         cursor: pointer;
         background-color: #45a049;
       }
+      .weekend-toggle {
+        display: inline-flex;
+        gap: 0;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .weekend-toggle input[type="checkbox"] {
+        display: none;
+      }
+      .weekend-toggle label {
+        padding: 6px 12px;
+        background-color: #ddd;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background-color 0.2s;
+        border-right: 1px solid #ccc;
+      }
+      .weekend-toggle label:last-of-type {
+        border-right: none;
+      }
+      .weekend-toggle input[type="checkbox"]:checked + label {
+        background-color: #4caf50;
+        color: white;
+      }
+      .weekend-toggle label:hover {
+        background-color: #bbb;
+      }
+      .weekend-toggle input[type="checkbox"]:checked + label:hover {
+        background-color: #45a049;
+      }
       .summary {
         background-color: #e8f5e8;
         padding: 10px;
@@ -199,6 +238,17 @@
           <input type="date" id="endDate" />
         </div>
         <div class="filter-group">
+          <label>Weekend Days:</label>
+          <div class="weekend-toggle">
+            <input type="checkbox" id="fridayFilter" />
+            <label for="fridayFilter">Friday</label>
+            <input type="checkbox" id="saturdayFilter" />
+            <label for="saturdayFilter">Saturday</label>
+            <input type="checkbox" id="sundayFilter" />
+            <label for="sundayFilter">Sunday</label>
+          </div>
+        </div>
+        <div class="filter-group">
           <button onclick="applyFilters()">Apply Filters</button>
           <button onclick="clearFilters()">Clear</button>
         </div>
@@ -228,6 +278,10 @@
       });
       lastUpdatedElement.textContent = localTime;
 
+      // Set start date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('startDate').value = today;
+
       const sitesData = {{SITES_DATA}};
       let filteredData = sitesData;
 
@@ -245,11 +299,30 @@
           const areaFilter = document.getElementById('areaFilter').value;
           const startDate = document.getElementById('startDate').value;
           const endDate = document.getElementById('endDate').value;
+          const includeFriday = document.getElementById('fridayFilter').checked;
+          const includeSaturday = document.getElementById('saturdayFilter').checked;
+          const includeSunday = document.getElementById('sundayFilter').checked;
 
           filteredData = sitesData.filter(site => {
               if (areaFilter && site.recreation_area !== areaFilter) return false;
               if (startDate && site.booking_date < startDate) return false;
               if (endDate && site.booking_date > endDate) return false;
+              
+              // Weekend filter - only show selected days
+              const anyWeekendSelected = includeFriday || includeSaturday || includeSunday;
+              if (anyWeekendSelected) {
+                  const date = new Date(site.booking_date);
+                  const dayOfWeek = date.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
+                  const isFriday = dayOfWeek === 5;
+                  const isSaturday = dayOfWeek === 6;
+                  const isSunday = dayOfWeek === 0;
+                  
+                  const matchesFilter = (includeFriday && isFriday) || 
+                                       (includeSaturday && isSaturday) || 
+                                       (includeSunday && isSunday);
+                  if (!matchesFilter) return false;
+              }
+              
               return true;
           });
 

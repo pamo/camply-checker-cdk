@@ -45,7 +45,7 @@ def generate_dashboard(sites_data, output_path='dashboard/index.html'):
     """Generate the dashboard HTML file"""
     
     # Read template
-    template_path = 'dashboard/template.html'
+    template_path = 'lambda/template.html'
     if not os.path.exists(template_path):
         print(f"Error: Template not found at {template_path}")
         return False
